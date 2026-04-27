@@ -31,6 +31,36 @@ services:
       timeout: 5s
       retries: 5
 
+  transaction-hub:
+    build: ./transaction-hub
+    container_name: transaction-platform-hub
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-transaction_platform}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      NEXTAUTH_URL: http://localhost:3000
+    depends_on:
+      - postgres
+      - redis
+      - transaction-service
+    ports:
+      - '3000:3000'
+
+  transaction-service:
+    build: ./transaction-service
+    container_name: transaction-platform-service
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-transaction_platform}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-10}
+      WORKER_COUNT: ${WORKER_COUNT:-2}
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - '3001:3001'
+
 volumes:
   postgres_data:
   redis_data:
