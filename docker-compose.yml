@@ -4,6 +4,8 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: transaction-platform-postgres
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -34,32 +36,29 @@ services:
   transaction-hub:
     build: ./transaction-hub
     container_name: transaction-platform-hub
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-transaction_platform}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      NEXTAUTH_URL: http://localhost:3000
     depends_on:
       - postgres
       - redis
       - transaction-service
     ports:
-      - '3000:3000'
+      - '${HUB_PORT}:3000'
 
   transaction-service:
     build: ./transaction-service
     container_name: transaction-platform-service
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-transaction_platform}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-10}
-      WORKER_COUNT: ${WORKER_COUNT:-2}
     depends_on:
       - postgres
       - redis
     ports:
-      - '3001:3001'
+      - '${SERVICE_PORT}:3000'
 
 volumes:
   postgres_data:
