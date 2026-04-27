@@ -1,12 +1,10 @@
-Distributed Transaction Processing Platform
-Transaction Platform
+# Transaction Platform
 
-
-💬 Key idea
+# Key idea
 This is not a "transaction service".
 This is: a system that reliably runs data through a sequence of steps and does not lose it in case of failures.
 
-🎯 The purpose of the whole system
+# The purpose of the whole system
 The system guarantees that:
 each transaction will be processed
 even if workers crash
@@ -15,60 +13,48 @@ even if the load is high
 
 
 
-Technology stack
+# Technology stack
 
 Backend:
-
-NestJS + TypeScript
-class-validator + class-transformer
-Prisma
+  NestJS + TypeScript
+  class-validator + class-transformer
+  Prisma
 
 
 Frontend:
-
-Next.js
-  MUI
-  next-auth (Auth.js)
+  Next.js
+    MUI
+    next-auth (Auth.js)
 
 
 Data & storage:
-
-PostgreSQL (Prisma)
-Redis (cache + queue)
+  PostgreSQL (Prisma)
+  Redis (cache + queue)
 
 
 Messaging / queue:
-
-BullMQ (Redis-based queue)
-
+  BullMQ (Redis-based queue)
 
 docker-compose
 
-
 Infrastructure concepts:
-
-microservices architecture
-event-driven processing
-background workers
-distributed job processing
-
+  microservices architecture
+  event-driven processing
+  background workers
+  distributed job processing
 
 Observability (optional):
-
-OpenTelemetry
-logging + metrics + tracing
-
+  OpenTelemetry
+  logging + metrics + tracing
 
 
+# Domain: Transaction
 
-Domain: Transaction
-
-📦 Base entity (Transaction)
+Base entity (Transaction)
 
 Each transaction is an atomic financial event.
-
 Initial structure (raw input)
-
+```
 {
   "transactionId": "uuid",
   "userId": "uuid",
@@ -82,11 +68,11 @@ Initial structure (raw input)
     "batchId": "uuid"
   }
 }
+```
 
-🔄 Internal extension of the entity within the system
-
+Internal extension of the entity within the system
 As it moves through the pipeline, the transaction is enriched with additional data and statuses:
-
+```
 {
   "transactionId": "...",
   "userId": "...",
@@ -112,15 +98,14 @@ As it moves through the pipeline, the transaction is enriched with additional da
   "createdAt": "timestamp",
   "updatedAt": "timestamp"
 }
+```
 
-
-
-Batch
+# Batch
 
 PROCESSING → there are unfinished transactions
 COMPLETED → all finished (processed + failed = total)
 FAILED → optional (if you want a separate state for “everything is bad”)
-
+```
 {
   "id": "uuid",
   "name": "string",
@@ -134,20 +119,16 @@ FAILED → optional (if you want a separate state for “everything is bad”)
   "createdAt": "timestamp",
   "updatedAt": "timestamp"
 }
-
+```
 When batch is updated
 
-👉 only in worker:
-
+only in worker:
 transaction COMPLETED → processed++
 transaction FAILED → failed++
 
-💥 When a batch is considered completed
-
+When a batch is considered completed
 processed + failed == total
-
-👉 then:
-
+then:
 status = COMPLETED
 
 
@@ -178,51 +159,36 @@ As a result, the system implements asynchronous, fault-tolerant transaction proc
 
 # Project structure
 
-
-transaction-platform/
-├── transaction-hub/
-└── transaction-service/
-
+transaction-platform
+├─ transaction-hub
+└─ transaction-service
 
 
-
-Full transaction processing flow
+# Full transaction processing flow
 
 0. System entry (Batch ingestion)
-
 A batch of transactions enters the system (via API or generator).
-
 Format:
-
 JSON array or CSV
 each record = one transaction
-
 At this stage:
-
 a batchId is created
 each transaction receives a transactionId
 all transactions are saved in the database in RAW state
 
 Additionally:
-
 for each transaction a queue job is created for the first processing step
-
 Transaction state:
-
 status = PENDING
 step = VALIDATE
 
 1. Validate (data validation)
-
 A worker picks up the job from the queue and validates the transaction.
-
 Checks:
-
 required fields (userId, amount, timestamp)
 data types
 amount > 0
 valid date format
-
 Result:
 
 If valid:
@@ -238,121 +204,85 @@ error = VALIDATION_ERROR
 no further processing is performed
 
 2. Enrich (data enrichment)
-
 A worker processes the job and adds computed fields to the transaction.
-
 Added data:
-
 region (e.g. based on merchant or userId)
 operationType (purchase / refund)
 simple derived fields
-
 The transaction is updated in the database.
-
 State:
-
 status = ENRICHED
 step = ANALYZE
-
 Next queue job is created.
 
 3. Analyze (anomaly detection)
-
 A worker analyzes the transaction.
-
 Simple rules are applied:
-
 transaction amount too high
 too frequent operations (per userId)
 suspicious merchant
-
 Result:
-
 riskScore is calculated
 flags are generated
-
 Example:
-
+```
 {
   "riskScore": 0.9,
   "flags": ["HIGH_AMOUNT"]
 }
-
+```
 State:
-
 status = ANALYZED
 step = COMPLETE
-
 Next job is created.
 
 4. Complete (finalization)
-
 Final worker:
-
 locks in the final state of the transaction
 marks it as completed
-
 State:
-
 status = COMPLETED
-
 At this point the pipeline ends.
-
-🔁 System behavior on failures
+System behavior on failures
 Retry
-
 If a worker crashes or a step fails:
-
 job is retried automatically
 retry count is limited (e.g. 3 attempts)
-
 DLQ (Dead Letter Queue)
-
 If the job keeps failing after retries:
-
 it is moved to a DLQ
 transaction is marked:
 status = FAILED
 
 Idempotency
-
 If a job runs twice (e.g. due to crash recovery):
-
 execution is safe
 updates are guarded by transactionId
 
-⚙️ Concurrent processing
-
+Concurrent processing
 each transaction is processed independently
 multiple workers can run in parallel
 workers pull jobs from the same queue
 
-💾 Data persistence
-
+Data persistence
 Transaction is stored:
 
 1. On ingestion (RAW)
-
 original input data
 
 2. After each step
-
 status updates
 new derived fields added
 
 3. At the end
-
 final state
 analysis result
 
-🧩 Final lifecycle
+Final lifecycle
 
 PENDING → VALIDATED → ENRICHED → ANALYZED → COMPLETED
-	      ↓
-          FAILED (at any stage)
-
-
-
+	            ↓
+            FAILED (at any stage)
 
 
 
@@ -376,8 +306,6 @@ to ensure there are no duplicate executions
 
 3. separate process:
    - returns stuck processing tasks → pending
-
-
 
 
 
