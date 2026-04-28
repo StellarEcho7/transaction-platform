@@ -86,4 +86,4 @@ After creating a component:
 1. Confirm the file paths created
 2. Note any MUI dependencies used
 3. Flag if Tailwind utility classes were needed for spacing/layout
-4. Suggest where to import it (e.g. `import { Button } from '@/components/Button'`)
+4. Suggest where to import it (e.g. `import { Button } from '@src/components/Button'`)
