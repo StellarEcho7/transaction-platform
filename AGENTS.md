@@ -3,21 +3,20 @@
 ## Structure
 ```
 transaction-platform/
-  transaction-hub/       # Next.js app + MUI UI
-  transaction-service/   # NestJS backend, Prisma schema, BullMQ workers
+  transaction-hub/       # Next.js app + MUI UI + tailwindcss + next-auth + Prisma
+  transaction-service/   # NestJS backend, Prisma, BullMQ workers
 ```
 
 ## Tech stack
 - **Backend:** NestJS + TypeScript, class-validator, class-transformer
-- **Frontend:** Next.js + MUI + next-auth (Auth.js) as BFF/gateway
-- **DB:** PostgreSQL via Prisma (`prisma/schema.prisma` → generates to `/generated/prisma`)
+- **Frontend:** Next.js + MUI + tailwindcss + next-auth (Auth.js) as BFF/gateway
+- **DB:** PostgreSQL via Prisma (`prisma/schema.prisma`)
 - **Queue:** BullMQ on Redis
 - **Infra:** docker-compose (PostgreSQL, Redis)
 
 ## Key constraints
 - `opencode.json` is gitignored — do not commit secrets or override it from agents.
 - `.env*` files are gitignored. Agents must not hardcode credentials.
-- Prisma client lives at `/generated/prisma` per `.gitignore`.
 
 ## Architecture overview
 The system processes transactions through a state machine:
@@ -34,6 +33,3 @@ Each step is a separate BullMQ job. Workers advance `currentStep` in the DB. A r
 
 ## Prisma
 Schema must define at least `Transaction` and `Batch` models matching the README entity definitions. Run `prisma generate` after changes — output goes to `/generated/prisma`.
-
-## Docker compose
-Provide a `docker-compose.yml` that starts PostgreSQL + Redis on standard ports (5432, 6379) for local development.

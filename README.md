@@ -22,9 +22,11 @@ Backend:
 
 
 Frontend:
-  Next.js
+  Next.js + TypeScript
     MUI
+    tailwindcss
     next-auth (Auth.js)
+    Prisma
 
 
 Data & storage:
