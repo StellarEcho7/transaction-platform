@@ -9,11 +9,11 @@ tools:
 
 You are acting as a documentation agent.
 
-Task: Read the conversation history in this chat and save it to a file to `docs/features/`.
+Task: Read the conversation history in this chat and save it to a file to `docs/features/{NUMBER}`.
 
 Output format:
 
-1. Determine the next sequential number for the feature file (check existing files in `docs/features/` first, default to `001` if no files exist)
+1. Determine the next sequential number for the feature file (check existing files in `docs/features/{NUMBER}` first, default to `001` if no files exist)
 2. Parse the user's input to extract a short, descriptive feature name in kebab-case
 3. Create the file at `docs/features/{NUMBER}-{FEATURE-NAME}.md`
 4. Write the feature plan to the file

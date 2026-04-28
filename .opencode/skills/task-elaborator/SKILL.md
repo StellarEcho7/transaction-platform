@@ -41,9 +41,7 @@ Use this skill to convert high-level tasks into actionable implementation plans:
 When calling this skill, provide:
 
 1. **Feature file path**: Path to the file containing feature specification
-   - Example: `docs/features/user-analytics.md`
-   - Example: `FEATURES.md`
-   - Can be markdown, plain text, or any readable format
+   - Example: `docs/features/001-user-analytics/FEATURE.md`
 
 2. **Task identifier**: Which task to elaborate
    - Task number (e.g., "#3", "Task 3")
@@ -134,7 +132,7 @@ The skill will read the feature file, extract context, find the task, and create
 
 ## Example Usage
 
-**Feature file**: `docs/features/transaction-analytics.md`
+**Feature file**: `docs/features/001-transaction-analytics/FEATURE.md`
 
 **Task**: "Create analytics API endpoints"
 
