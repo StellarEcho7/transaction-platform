@@ -41,8 +41,8 @@ src/components/ComponentName/
 3. Write barrel export in `index.ts`:
    - Simple wrapper: `export { default } from './Button'` or re-export from MUI
    - Custom component: full implementation + export
- 4. If custom types needed, create `<Component>.types.ts` and import them in the component file
- 5. Add to `src/components/index.ts` if a global barrel is desired (optional)
+4. If custom types needed, create `<Component>.types.ts` and import them in the component file
+5. Add to `src/components/index.ts` if a global barrel is desired (optional)
 
 ## Storybook stories
 
@@ -127,3 +127,4 @@ After creating a component:
 2. Note any MUI dependencies used
 3. Flag if Tailwind utility classes were needed for spacing/layout
 4. Suggest where to import it (e.g. `import { Button } from '@src/components/Button'`)
+5. Use quality-gate to make sure all checks pass before finalizing the task
