@@ -6,6 +6,8 @@ compatibility: opencode
 metadata:
   audience: developers
   workflow: development
+  dependencies:
+    - quality-gate
 ---
 
 ## When to use me
@@ -16,9 +18,10 @@ When the user asks to create a new UI component in `transaction-hub`. Ensures co
 
 ```
 src/components/ComponentName/
-├── index.ts       # default export + named exports
-├── ComponentName.tsx   # implementation (optional if simple)
-└── ComponentName.types.ts  # TS types for this component (optional)
+├── index.ts             # default export + named exports
+├── ComponentName.tsx    # implementation (optional if simple)
+├── ComponentName.types.ts   # TS types for this component (optional)
+└── ComponentName.stories.tsx  # Storybook story (required)
 ```
 
 ## Rules
@@ -28,6 +31,8 @@ src/components/ComponentName/
 3. **Types separate** — put TS types in `<Component>.types.ts` inside the same folder, never pollute component code with type definitions
 4. **MUI first** — wrap or re-export from `@mui/material`; avoid raw CSS unless necessary (Tailwind for spacing/utilities)
 5. **File naming** — use PascalCase for component folders and files
+6. **displayName required** — every forwardRef component must set `Component.displayName = 'ComponentName'` so React DevTools shows the correct name
+7. **Storybook stories required** — every component must have a `.stories.tsx` file with at least one story documenting default behavior
 
 ## Implementation steps
 
@@ -36,8 +41,41 @@ src/components/ComponentName/
 3. Write barrel export in `index.ts`:
    - Simple wrapper: `export { default } from './Button'` or re-export from MUI
    - Custom component: full implementation + export
-4. If custom types needed, create `<Component>.types.ts` and import them in the component file
-5. Add to `src/components/index.ts` if a global barrel is desired (optional)
+ 4. If custom types needed, create `<Component>.types.ts` and import them in the component file
+ 5. Add to `src/components/index.ts` if a global barrel is desired (optional)
+
+## Storybook stories
+
+Every component needs a `.stories.tsx` file next to it. Use `@storybook/nextjs-vite`, not `@storybook/react`.
+
+```tsx
+// src/components/Button/Button.stories.tsx
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import Button from ".";
+
+const meta = {
+  title: "Components/Button",
+  component: Button,
+  tags: ["autodocs"],
+} satisfies Meta<typeof Button>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {
+    children: "Default Button",
+    variant: "contained",
+    color: "primary",
+  },
+};
+```
+
+**Story guidelines:**
+- Use `import ... from "."` to import the component (since barrel re-exports default)
+- Title should follow pattern `Components/<ComponentName>`
+- Include at least one story showing default state
+- Add argTypes for MUI props like `variant`, `color` when relevant
 
 ## Example: Button wrapper over MUI
 
@@ -58,6 +96,8 @@ type ButtonProps = MuiButtonProps;
 const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => (
   <MuiButton {...props} ref={ref} />
 ));
+
+Button.displayName = 'Button';
 
 export default Button;
 ```
