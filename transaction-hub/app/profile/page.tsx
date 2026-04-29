@@ -1,12 +1,13 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../lib/auth";
+"use client";
+
+import { useSession } from "next-auth/react";
 import Box from "@/src/components/Box";
 import Typography from "@/src/components/Typography";
+import Button from "@/src/components/Button";
+import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-
-export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
+export default function ProfilePage() {
+  const { data: session } = useSession();
 
   return (
     <Box
@@ -29,21 +30,25 @@ export default async function ProfilePage() {
           boxShadow: 3,
         }}
       >
-        <Typography variant="h4" sx={{ mb: 3 }}>
+        <Typography variant="h4" sx={{ mb: 3, color: "#1a1a1a" }}>
           Profile
         </Typography>
 
-        <Typography variant="body1" sx={{ mb: 1 }}>
+        <Typography variant="body1" sx={{ mb: 1, color: "#1a1a1a" }}>
           <strong>Name:</strong> {session?.user?.name || "Not set"}
         </Typography>
 
-        <Typography variant="body1" sx={{ mb: 1 }}>
+        <Typography variant="body1" sx={{ mb: 1, color: "#1a1a1a" }}>
           <strong>Email:</strong> {session?.user?.email}
         </Typography>
 
-        <Typography variant="body1">
+        <Typography variant="body1" sx={{ mb: 3, color: "#1a1a1a" }}>
           <strong>Role:</strong> {session?.user?.role}
         </Typography>
+
+        <Link href="/account">
+          <Button variant="outlined">Back to Account</Button>
+        </Link>
       </Box>
     </Box>
   );

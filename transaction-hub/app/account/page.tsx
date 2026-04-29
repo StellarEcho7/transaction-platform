@@ -1,11 +1,10 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../lib/auth";
+"use client";
+
+import { useSession } from "next-auth/react";
 import AccountView from "@/src/components/AccountView";
 
-export const dynamic = "force-dynamic";
-
-export default async function AccountPage() {
-  const session = await getServerSession(authOptions);
+export default function AccountPage() {
+  const { data: session } = useSession();
 
   return (
     <AccountView

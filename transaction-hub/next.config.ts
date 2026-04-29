@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  compiler: {
+    emotion: {
+      sourceMap: false,
+      autoLabel: "never",
+    },
+  },
 };
 
 export default nextConfig;
