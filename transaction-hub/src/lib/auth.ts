@@ -1,7 +1,7 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { NextAuthOptions, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import prisma from "../prisma/client";
+import prisma from "@/prisma/client";
 import { verifyPassword } from "./password";
 
 interface CustomUser {
