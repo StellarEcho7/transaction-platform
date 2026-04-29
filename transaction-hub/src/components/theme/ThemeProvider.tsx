@@ -11,12 +11,6 @@ const lightTheme = createTheme({
   },
 });
 
-export function ThemeProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <MuiThemeProvider theme={lightTheme}>{children}</MuiThemeProvider>
-  );
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  return <MuiThemeProvider theme={lightTheme}>{children}</MuiThemeProvider>;
 }

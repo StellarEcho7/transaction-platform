@@ -43,8 +43,8 @@ export default function AccountView({ name, email, role }: AccountViewProps) {
           }}
         >
           <Typography variant="h4" sx={{ color: "#1a1a1a" }}>
-          Account
-        </Typography>
+            Account
+          </Typography>
           <Button
             variant="outlined"
             onClick={() => signOut({ callbackUrl: "/login" })}

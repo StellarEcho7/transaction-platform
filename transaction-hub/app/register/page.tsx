@@ -8,6 +8,7 @@ import Box from "@/src/components/Box";
 import TextField from "@/src/components/TextField";
 import Button from "@/src/components/Button";
 import Typography from "@/src/components/Typography";
+import SnackbarAlert from "@/src/components/SnackbarAlert";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,11 +17,13 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (!name || !email || !password || !confirmPassword) {
       setError("Please fill in all fields");
@@ -53,6 +56,8 @@ export default function RegisterPage() {
         setLoading(false);
         return;
       }
+
+      setSuccess("Account created! Redirecting...");
 
       const result = await signIn("credentials", {
         email,
@@ -101,21 +106,6 @@ export default function RegisterPage() {
         >
           Register
         </Typography>
-
-        {error && (
-          <Box
-            sx={{
-              mb: 2,
-              p: 1.5,
-              bgcolor: "error.light",
-              color: "error.contrastText",
-              borderRadius: 1,
-              fontSize: "0.875rem",
-            }}
-          >
-            {error}
-          </Box>
-        )}
 
         <form onSubmit={handleSubmit}>
           <TextField
@@ -179,6 +169,19 @@ export default function RegisterPage() {
           </Link>
         </Typography>
       </Box>
+
+      <SnackbarAlert
+        open={!!error}
+        message={error}
+        severity="error"
+        onClose={() => setError("")}
+      />
+      <SnackbarAlert
+        open={!!success}
+        message={success}
+        severity="success"
+        onClose={() => setSuccess("")}
+      />
     </Box>
   );
 }

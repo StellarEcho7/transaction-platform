@@ -8,6 +8,7 @@ import Box from "@/src/components/Box";
 import TextField from "@/src/components/TextField";
 import Button from "@/src/components/Button";
 import Typography from "@/src/components/Typography";
+import SnackbarAlert from "@/src/components/SnackbarAlert";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -71,21 +72,6 @@ export default function LoginPage() {
           Sign In
         </Typography>
 
-        {error && (
-          <Box
-            sx={{
-              mb: 2,
-              p: 1.5,
-              bgcolor: "error.light",
-              color: "error.contrastText",
-              borderRadius: 1,
-              fontSize: "0.875rem",
-            }}
-          >
-            {error}
-          </Box>
-        )}
-
         <form onSubmit={handleSubmit}>
           <TextField
             label="Email"
@@ -128,6 +114,13 @@ export default function LoginPage() {
           </Link>
         </Typography>
       </Box>
+
+      <SnackbarAlert
+        open={!!error}
+        message={error}
+        severity="error"
+        onClose={() => setError("")}
+      />
     </Box>
   );
 }
