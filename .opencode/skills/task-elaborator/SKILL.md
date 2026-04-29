@@ -49,3 +49,4 @@ The skill reads the feature file, finds the task, and creates a detailed guide.
 - No subtask should take > 4 hours
 - Think about tests while planning
 - Output serves as a code review checklist
+- Keep everything simple and actionable — avoid vague instructions

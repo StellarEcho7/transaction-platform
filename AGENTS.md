@@ -32,4 +32,4 @@ Each step is a separate BullMQ job. Workers advance `currentStep` in the DB. A r
 - Worker checks: if `tx.status === "PROCESSING"` and `processing_started_at > now() - 60s`, skip to prevent duplicates.
 
 ## Prisma
-Schema must define at least `Transaction` and `Batch` models matching the README entity definitions. Run `prisma generate` after changes — output goes to `/generated/prisma`.
+Schema must define at least `Transaction` and `Batch` models matching the README entity definitions. Run `prisma generate` after changes — output goes to `node_modules/@prisma/client`.

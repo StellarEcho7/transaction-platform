@@ -2,6 +2,7 @@
 description: Saves task implementation results to docs/features/{FEATURE_NAME}/tasks
 agent: build
 tools:
+  read: true
   write: true
   edit: false
   bash: false
