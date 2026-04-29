@@ -20,7 +20,11 @@ function DefaultStory() {
   return (
     <FormControl fullWidth>
       <InputLabel id="demo-select-label">Age</InputLabel>
-      <Select value={value} onChange={(e) => setValue(e.target.value as number)} label="Age">
+      <Select
+        value={value}
+        onChange={(e) => setValue(e.target.value as number)}
+        label="Age"
+      >
         <MenuItem value={10}>Ten</MenuItem>
         <MenuItem value={20}>Twenty</MenuItem>
         <MenuItem value={30}>Thirty</MenuItem>
@@ -65,8 +69,15 @@ function OutlinedStory() {
   return (
     <FormControl fullWidth>
       <InputLabel id="demo-select-label">Country</InputLabel>
-      <Select variant="outlined" value={value} onChange={(e) => setValue(e.target.value as string)} label="Country">
-        <MenuItem value=""><em>None</em></MenuItem>
+      <Select
+        variant="outlined"
+        value={value}
+        onChange={(e) => setValue(e.target.value as string)}
+        label="Country"
+      >
+        <MenuItem value="">
+          <em>None</em>
+        </MenuItem>
         <MenuItem value={10}>USA</MenuItem>
         <MenuItem value={20}>UK</MenuItem>
         <MenuItem value={30}>Germany</MenuItem>
@@ -82,7 +93,13 @@ function MultipleStory() {
   const [value, setValue] = useState<string[]>(["one", "two"]);
   return (
     <FormControl fullWidth>
-      <Select multiple value={value} onChange={(e) => setValue(Array.isArray(e.target.value) ? e.target.value : [])}>
+      <Select
+        multiple
+        value={value}
+        onChange={(e) =>
+          setValue(Array.isArray(e.target.value) ? e.target.value : [])
+        }
+      >
         <MenuItem value="one">One</MenuItem>
         <MenuItem value="two">Two</MenuItem>
         <MenuItem value="three">Three</MenuItem>
