@@ -9,7 +9,8 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  const isProtectedRoute = pathname.startsWith("/account");
+  const isProtectedRoute =
+    pathname.startsWith("/account") || pathname.startsWith("/profile");
   const isAuthRoute = pathname === "/login" || pathname === "/register";
 
   if (isProtectedRoute && !token) {
