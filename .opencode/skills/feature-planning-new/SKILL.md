@@ -101,7 +101,7 @@ Rules:
 
 ---
 
-### 5. Execution Tasks (MAX 3–7)
+### 5. Execution Tasks (MAX 5–7)
 
 Rules:
 - Each task = observable change in codebase
@@ -167,6 +167,6 @@ Feature is complete when:
 4. Scope (MVP / Out of scope)  
 5. Technical Plan  
 6. Contracts  
-7. Tasks (max 3–7)  
+7. Tasks (max 5–7)  
 8. Risk Notes  
 9. Definition of Done
