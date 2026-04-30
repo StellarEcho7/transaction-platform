@@ -20,8 +20,8 @@ export async function POST(req: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "Email already in use" },
-        { status: 400 },
+        { error: "User with this email already exists" },
+        { status: 409 },
       );
     }
 
