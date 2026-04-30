@@ -1,5 +1,5 @@
 ---
-name: feature-planning
+name: feature-planning-new
 description: Create concise, execution-ready feature specs for LLM-driven implementation with strict scope control and codebase awareness
 license: MIT
 compatibility: opencode
