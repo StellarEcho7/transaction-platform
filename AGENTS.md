@@ -18,6 +18,14 @@ transaction-platform/
 - `opencode.json` is gitignored — do not commit secrets or override it from agents.
 - `.env*` files are gitignored. Agents must not hardcode credentials.
 
+## Environment Rules
+- Use only variables from `.env.example`
+- Never introduce new env vars without updating `.env.example`
+- Respect hierarchy:
+  - root `.env.example` → shared/infrastructure
+  - service `.env.example` → service-specific
+- No hardcoded secrets or environment values
+
 ## Architecture overview
 The system processes transactions through a state machine:
 1. **VALIDATE** → check required fields, types, amount > 0
