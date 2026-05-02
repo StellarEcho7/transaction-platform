@@ -1,25 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionDto } from './dto/transaction.dto';
-import { TransactionStatus, TransactionStep } from '@prisma/client';
+import { TransactionPersistenceDto } from './dto/transaction-persistence.dto';
 
 @Injectable()
 export class TransactionService {
   constructor(private prisma: PrismaService) {}
 
   async createMany(batchId: string, transactions: TransactionDto[]) {
-    const data = transactions.map((tx) => ({
-      transactionId: tx.transactionId || null,
-      userId: tx.userId,
-      amount: tx.amount,
-      currency: tx.currency,
-      timestamp: new Date(tx.timestamp),
-      merchant: tx.merchant,
-      category: tx.category,
-      batchId,
-      status: TransactionStatus.PENDING,
-      currentStep: TransactionStep.VALIDATE,
-    }));
+    const data = transactions.map((tx) =>
+      plainToInstance(TransactionPersistenceDto, { ...tx, batchId }),
+    );
 
     return this.prisma.transaction.createMany({ data });
   }
