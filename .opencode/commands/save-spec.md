@@ -21,6 +21,7 @@ Output format:
 
 Rules:
 - Always use zero-padded 3-digit numbers (001, 002, etc.)
+- Also check for existing folders, not just files, when determining sequence numbers
 - Feature names must be kebab-case lowercase with spaces replaced by hyphens
 - The folder name format is always: `{NUMBER}-{SPEC-NAME}`
 - The file name format is always: `SPEC.md`
