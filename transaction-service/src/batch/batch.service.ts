@@ -16,22 +16,25 @@ export class BatchService {
   async create(createBatchDto: CreateBatchDto): Promise<BatchResponseDto> {
     const batchName = createBatchDto.batchName || this.generateBatchName();
 
-    const batch = await this.prisma.batch.create({
-      data: {
-        name: batchName,
-        status: BatchStatus.PROCESSING,
-        total: createBatchDto.transactions.length,
-        processed: 0,
-        failed: 0,
-      },
+    const batch = await this.prisma.$transaction(async (tx) => {
+      const batch = await this.prisma.batch.create({
+        data: {
+          name: batchName,
+          status: BatchStatus.PROCESSING,
+          total: createBatchDto.transactions.length,
+          processed: 0,
+          failed: 0,
+        },
+      });
+
+      await this.transactionService.createMany(
+        batch.id,
+        createBatchDto.transactions,
+      );
+
+      return plainToInstance(BatchResponseDto, batch);
     });
-
-    await this.transactionService.createMany(
-      batch.id,
-      createBatchDto.transactions,
-    );
-
-    return plainToInstance(BatchResponseDto, batch);
+    return batch;
   }
 
   private generateBatchName(): string {
