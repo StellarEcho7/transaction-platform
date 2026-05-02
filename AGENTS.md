@@ -26,6 +26,100 @@ transaction-platform/
   - service `.env.example` → service-specific
 - No hardcoded secrets or environment values
 
+# NestJS Rules
+
+## Architecture
+- Follow modular structure:
+  - Each feature = separate module (`*.module.ts`)
+  - No god-modules
+- Strict layering:
+  - Controller → Service → Repository (Prisma)
+  - No direct DB access from controllers
+
+## DTO & Validation
+- All inputs must go through DTOs
+- Use:
+  - `class-validator`
+  - `class-transformer`
+- Enable global validation pipe:
+  - `whitelist: true`
+  - `forbidNonWhitelisted: true`
+
+## Business logic
+- Business logic lives only in services
+- Controllers are thin (mapping only)
+- No logic in workers outside orchestration
+
+## Prisma usage
+- Use Prisma via a dedicated service (`PrismaService`)
+- No raw queries unless absolutely necessary
+- Always handle:
+  - transactions
+  - race conditions (especially in workers)
+
+## Error handling
+- Use NestJS exceptions (`HttpException`, etc.)
+- Do not throw raw errors
+- Map domain errors → HTTP responses
+
+## Workers (BullMQ)
+- One processor per job type
+- Workers must be:
+  - idempotent
+  - retry-safe
+- Never duplicate processing:
+  - always check `status` + `processing_started_at`
+- No heavy logic in queue handlers — delegate to services
+
+## Dependency rules
+- No circular dependencies between modules
+- Use `@Injectable()` properly
+- Shared logic → shared module
+
+---
+
+# Next.js Rules
+
+## Architecture
+- Use App Router (no legacy pages router)
+- Split clearly:
+  - UI (components)
+  - server logic (actions / route handlers)
+- Treat Next.js as BFF (Backend-for-Frontend)
+
+## Data fetching
+- Prefer:
+  - Server Components
+  - Server Actions
+- Avoid unnecessary client-side fetching
+
+## State management
+- Keep state minimal:
+  - local state > global state
+- Do not introduce global state libs unless justified
+
+## Auth (next-auth / Auth.js)
+- All sensitive logic must be server-side
+- Never trust client session blindly
+- Use session only as a hint, not a source of truth
+
+## API interaction
+- Do not call backend directly from client components
+- Always go through:
+  - server actions
+  - route handlers
+
+## UI
+- Use MUI for components
+- Use Tailwind for layout/spacing only
+- Avoid mixing styles хаотично
+
+## Performance
+- Avoid unnecessary `use client`
+- Prefer streaming / SSR where possible
+
+---
+
 ## Architecture overview
 The system processes transactions through a state machine:
 1. **VALIDATE** → check required fields, types, amount > 0
