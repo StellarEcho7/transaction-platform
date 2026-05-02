@@ -1,17 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionService } from '../transaction/transaction.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
+import { BatchResponseDto } from './dto/batch-response.dto';
 import { BatchStatus } from '@prisma/client';
-
-export interface BatchResponse {
-  batchId: string;
-  batchName: string;
-  status: string;
-  total: number;
-  processed: number;
-  failed: number;
-}
 
 @Injectable()
 export class BatchService {
@@ -20,7 +13,7 @@ export class BatchService {
     private transactionService: TransactionService,
   ) {}
 
-  async create(createBatchDto: CreateBatchDto): Promise<BatchResponse> {
+  async create(createBatchDto: CreateBatchDto): Promise<BatchResponseDto> {
     const batchName = createBatchDto.batchName || this.generateBatchName();
 
     const batch = await this.prisma.batch.create({
@@ -33,16 +26,12 @@ export class BatchService {
       },
     });
 
-    await this.transactionService.createMany(batch.id, createBatchDto.transactions);
+    await this.transactionService.createMany(
+      batch.id,
+      createBatchDto.transactions,
+    );
 
-    return {
-      batchId: batch.id,
-      batchName: batch.name,
-      status: batch.status,
-      total: batch.total,
-      processed: batch.processed,
-      failed: batch.failed,
-    };
+    return plainToInstance(BatchResponseDto, batch);
   }
 
   private generateBatchName(): string {
