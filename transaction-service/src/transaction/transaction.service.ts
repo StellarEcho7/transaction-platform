@@ -10,7 +10,11 @@ export class TransactionService {
 
   async createMany(batchId: string, transactions: TransactionDto[]) {
     const data = transactions.map((tx) =>
-      plainToInstance(TransactionPersistenceDto, { ...tx, batchId }),
+      plainToInstance(
+        TransactionPersistenceDto,
+        { ...tx, batchId },
+        { excludeExtraneousValues: true },
+      ),
     );
 
     return this.prisma.transaction.createMany({ data });
