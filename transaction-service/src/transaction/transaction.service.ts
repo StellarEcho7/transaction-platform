@@ -19,4 +19,11 @@ export class TransactionService {
 
     return this.prisma.transaction.createMany({ data });
   }
+
+  async findAllByBatchId(batchId: string): Promise<{ id: string }[]> {
+    return this.prisma.transaction.findMany({
+      where: { batchId },
+      select: { id: true },
+    });
+  }
 }

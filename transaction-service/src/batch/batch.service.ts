@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionService } from '../transaction/transaction.service';
+import { QueueService } from '../queue/queue.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { BatchResponseDto } from './dto/batch-response.dto';
 import { BatchStatus } from '@prisma/client';
@@ -11,13 +12,14 @@ export class BatchService {
   constructor(
     private prisma: PrismaService,
     private transactionService: TransactionService,
+    private queueService: QueueService,
   ) {}
 
   async create(createBatchDto: CreateBatchDto): Promise<BatchResponseDto> {
     const batchName = createBatchDto.batchName || this.generateBatchName();
 
     const batch = await this.prisma.$transaction(async (tx) => {
-      const batch = await this.prisma.batch.create({
+      const batch = await tx.batch.create({
         data: {
           name: batchName,
           status: BatchStatus.PROCESSING,
@@ -34,6 +36,12 @@ export class BatchService {
 
       return plainToInstance(BatchResponseDto, batch);
     });
+
+    const transactions = await this.transactionService.findAllByBatchId(
+      batch.id,
+    );
+    await this.queueService.addTransactionJobs(transactions);
+
     return batch;
   }
 

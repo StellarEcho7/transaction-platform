@@ -5,6 +5,8 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { BatchModule } from './batch/batch.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { QueueModule } from './queue/queue.module';
+import { WorkersModule } from './workers/workers.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { TransactionModule } from './transaction/transaction.module';
     PrismaModule,
     BatchModule,
     TransactionModule,
+    QueueModule,
+    WorkersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

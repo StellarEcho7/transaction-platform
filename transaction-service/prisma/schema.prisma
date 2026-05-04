@@ -47,6 +47,10 @@ model Transaction {
   timestamp           DateTime
   merchant            String
   category            String
+  region              String?
+  operationType       String?
+  riskScore           Float?
+  fraudFlags          Json?
   batchId             String
   batch               Batch            @relation(fields: [batchId], references: [id])
   status              TransactionStatus @default(PENDING)
