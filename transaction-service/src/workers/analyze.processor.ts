@@ -5,8 +5,10 @@ import { BatchService } from '../batch/batch.service';
 import {
   TransactionStatus,
   FraudFlag,
+  Region,
   HIGH_AMOUNT_THRESHOLD,
   MEDIUM_AMOUNT_THRESHOLD,
+  SUSPICIOUS_KEYWORDS,
 } from '../transaction/constants';
 import { DEDUPLICATION_INTERVAL_MS } from '../shared/constants';
 import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
@@ -73,7 +75,7 @@ export class AnalyzeProcessor {
 
     const amount = tx.amount || 0;
     const merchant = tx.merchant || '';
-    const region = tx.region || 'UNKNOWN';
+    const region = tx.region || Region.UNKNOWN;
 
     if (amount > HIGH_AMOUNT_THRESHOLD) {
       fraudFlags.push(FraudFlag.HIGH_AMOUNT);
@@ -82,22 +84,15 @@ export class AnalyzeProcessor {
       riskScore += 0.2;
     }
 
-    const suspiciousMerchants = [
-      'suspicious',
-      'unknown',
-      'test',
-      'fake',
-      'scam',
-    ];
-    const isSuspiciousMerchant = suspiciousMerchants.some((suspicious) =>
-      merchant.toLowerCase().includes(suspicious),
+    const isSuspiciousMerchant = SUSPICIOUS_KEYWORDS.some((keyword) =>
+      merchant.toLowerCase().includes(keyword),
     );
     if (isSuspiciousMerchant) {
       fraudFlags.push(FraudFlag.SUSPICIOUS_MERCHANT);
       riskScore += 0.5;
     }
 
-    if (region === 'UNKNOWN') {
+    if (region === Region.UNKNOWN) {
       fraudFlags.push(FraudFlag.UNKNOWN_REGION);
       riskScore += 0.2;
     }

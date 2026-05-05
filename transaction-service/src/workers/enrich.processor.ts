@@ -6,6 +6,10 @@ import {
   TransactionStep,
   TransactionStatus,
   OperationType,
+  Region,
+  US_MERCHANTS,
+  ASIA_MERCHANTS,
+  EU_MERCHANTS,
 } from '../transaction/constants';
 import { DEDUPLICATION_INTERVAL_MS } from '../shared/constants';
 import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
@@ -70,27 +74,17 @@ export class EnrichProcessor {
     merchant: string | null;
     amount: number | null;
     userId: string | null;
-  }): { region: string; operationType: string } {
+  }): { region: Region; operationType: OperationType } {
     const merchant = tx.merchant || '';
     const amount = tx.amount || 0;
 
-    let region = 'UNKNOWN';
-    if (
-      merchant.toLowerCase().includes('amazon') ||
-      merchant.toLowerCase().includes('ebay') ||
-      merchant.toLowerCase().includes('walmart')
-    ) {
-      region = 'US';
-    } else if (
-      merchant.toLowerCase().includes('alibaba') ||
-      merchant.toLowerCase().includes('tencent')
-    ) {
-      region = 'ASIA';
-    } else if (
-      merchant.toLowerCase().includes('carrefour') ||
-      merchant.toLowerCase().includes('metro')
-    ) {
-      region = 'EU';
+    let region: Region = Region.UNKNOWN;
+    if (US_MERCHANTS.some((m) => merchant.toLowerCase().includes(m))) {
+      region = Region.US;
+    } else if (ASIA_MERCHANTS.some((m) => merchant.toLowerCase().includes(m))) {
+      region = Region.ASIA;
+    } else if (EU_MERCHANTS.some((m) => merchant.toLowerCase().includes(m))) {
+      region = Region.EU;
     }
 
     const operationType =
