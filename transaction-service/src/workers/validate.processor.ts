@@ -5,9 +5,8 @@ import { OutboxService } from '../outbox/outbox.service';
 import { TransactionStep, TransactionStatus } from '../transaction/constants';
 import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
 
-export interface TransactionJobData {
+export interface ValidateJobData {
   transactionId: string;
-  step: 'VALIDATE' | 'ENRICH' | 'ANALYZE';
 }
 
 @Processor(QUEUE_NAME)
@@ -17,11 +16,9 @@ export class ValidateProcessor {
     private readonly outboxService: OutboxService,
   ) {}
 
-  @Process(JOB_NAME)
-  async handle(job: Job<TransactionJobData>): Promise<void> {
-    const { transactionId, step } = job.data;
-
-    if (step !== TransactionStep.VALIDATE) return;
+  @Process(JOB_NAME.VALIDATE)
+  async handle(job: Job<ValidateJobData>): Promise<void> {
+    const { transactionId } = job.data;
 
     const tx = await this.workersService.getTransaction(transactionId);
 

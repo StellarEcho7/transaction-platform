@@ -2,7 +2,6 @@ import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bullmq';
 import { WorkersService } from './workers.service';
 import {
-  TransactionStep,
   TransactionStatus,
   FraudFlag,
   HIGH_AMOUNT_THRESHOLD,
@@ -10,20 +9,17 @@ import {
 } from '../transaction/constants';
 import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
 
-export interface TransactionJobData {
+export interface AnalyzeJobData {
   transactionId: string;
-  step: 'VALIDATE' | 'ENRICH' | 'ANALYZE';
 }
 
 @Processor(QUEUE_NAME)
 export class AnalyzeProcessor {
   constructor(private readonly workersService: WorkersService) {}
 
-  @Process(JOB_NAME)
-  async handle(job: Job<TransactionJobData>): Promise<void> {
-    const { transactionId, step } = job.data;
-
-    if (step !== TransactionStep.ANALYZE) return;
+  @Process(JOB_NAME.ANALYZE)
+  async handle(job: Job<AnalyzeJobData>): Promise<void> {
+    const { transactionId } = job.data;
 
     const tx = await this.workersService.getTransaction(transactionId);
 

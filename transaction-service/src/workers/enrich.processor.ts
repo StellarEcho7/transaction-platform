@@ -9,9 +9,8 @@ import {
 } from '../transaction/constants';
 import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
 
-export interface TransactionJobData {
+export interface EnrichJobData {
   transactionId: string;
-  step: 'VALIDATE' | 'ENRICH' | 'ANALYZE';
 }
 
 @Processor(QUEUE_NAME)
@@ -21,11 +20,9 @@ export class EnrichProcessor {
     private readonly outboxService: OutboxService,
   ) {}
 
-  @Process(JOB_NAME)
-  async handle(job: Job<TransactionJobData>): Promise<void> {
-    const { transactionId, step } = job.data;
-
-    if (step !== TransactionStep.ENRICH) return;
+  @Process(JOB_NAME.ENRICH)
+  async handle(job: Job<EnrichJobData>): Promise<void> {
+    const { transactionId } = job.data;
 
     const tx = await this.workersService.getTransaction(transactionId);
 

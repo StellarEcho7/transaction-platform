@@ -7,7 +7,14 @@ import {
   RETRY_ATTEMPTS,
   RETRY_BACKOFF_DELAY,
 } from '../queue/constants';
+import { TransactionStep } from '../transaction/constants';
 import { OUTBOX_POLL_INTERVAL_MS } from '../shared/constants';
+
+const STEP_TO_JOB_NAME: Record<TransactionStep, string> = {
+  [TransactionStep.VALIDATE]: JOB_NAME.VALIDATE,
+  [TransactionStep.ENRICH]: JOB_NAME.ENRICH,
+  [TransactionStep.ANALYZE]: JOB_NAME.ANALYZE,
+};
 
 @Injectable()
 export class OutboxProcessor {
@@ -29,11 +36,12 @@ export class OutboxProcessor {
 
       for (const event of events) {
         try {
+          const jobName = STEP_TO_JOB_NAME[event.step];
+
           await this.queueService.publish({
-            name: JOB_NAME,
+            name: jobName,
             data: {
               transactionId: event.transactionId,
-              step: event.step,
             },
             opts: {
               jobId: `${event.transactionId}-${event.step}`,
@@ -46,7 +54,7 @@ export class OutboxProcessor {
 
           await this.outboxService.markProcessed(event.id);
           this.logger.debug(
-            `Published job for transaction ${event.transactionId}, step ${event.step}`,
+            `Published job ${jobName} for transaction ${event.transactionId}`,
           );
         } catch (error) {
           this.logger.error(
