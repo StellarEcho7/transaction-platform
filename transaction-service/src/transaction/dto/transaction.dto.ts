@@ -1,9 +1,8 @@
-import { IsOptional, IsString, IsNumber, IsDateString } from 'class-validator';
+import { IsString, IsNumber, IsDateString } from 'class-validator';
 
 export class TransactionDto {
-  @IsOptional()
   @IsString()
-  transactionId?: string;
+  transactionId: string;
 
   @IsString()
   userId: string;

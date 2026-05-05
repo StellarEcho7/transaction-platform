@@ -64,6 +64,7 @@ export class ValidateProcessor {
   }
 
   private validateTransaction(tx: {
+    transactionId: string | null;
     userId: string | null;
     amount: number | null;
     timestamp: Date | null;
@@ -71,6 +72,10 @@ export class ValidateProcessor {
     category: string | null;
   }): { valid: boolean; errors?: string[] } {
     const errors: string[] = [];
+
+    if (!tx.transactionId || tx.transactionId.trim() === '') {
+      errors.push('transactionId is required');
+    }
 
     if (!tx.userId || tx.userId.trim() === '') {
       errors.push('userId is required');

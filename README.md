@@ -77,11 +77,7 @@ Initial structure (raw input)
   "currency": "USD",
   "timestamp": "ISO-8601",
   "merchant": "string",
-  "category": "string",
-  "metadata": {
-    "source": "api|batch|generator",
-    "batchId": "uuid"
-  }
+  "category": "string"
 }
 ```
 
@@ -151,7 +147,7 @@ status = COMPLETED
 
 The system is a web application with a UI in which a user can generate or upload a JSON with transactions, optionally specifying a batch name (optional; if not specified, it is generated automatically). Generation can occur directly in the UI (for example, in Next.js), where the user sets parameters (number of transactions, proportion of invalid data, patterns of suspicious operations, seed for reproducibility), after which a JSON for upload is formed. At the same time, generation is used only for demonstration and testing of the system, and is not part of the real production flow. After submitting the data, the frontend calls the API, with the Next.js layer acting as a BFF/API Gateway (using Auth.js to work with the user), proxying requests to the backend and adding user context.
 
-The API creates a batch record in the database (with status PROCESSING, the number of expected transactions, and metadata), then accepts an array of transactions. For each transaction, the provided id is used (or generated on the server), after which each transaction is saved in the database as a separate record with a reference to batchId, initial fields, status = PENDING and currentStep = VALIDATE. At the database level, a uniqueness constraint on id is enforced, which ensures idempotency — duplicates are not created.
+The API creates a batch record in the database (with status PROCESSING, the number of expected transactions, and source), then accepts an array of transactions. TransactionId is required for each transaction — it's used as unique identifier for idempotency. The provided id is used if specified, if not — error is returned. After validation, each transaction is saved in the database as a separate record with a reference to batchId, initial fields, status = PENDING and currentStep = VALIDATE. At the database level, a uniqueness constraint on transactionId is enforced, which ensures idempotency — duplicates are not created.
 
 Within the same database transaction, for each transaction an outbox event is created describing the next processing step (e.g., VALIDATE). This guarantees that both the transaction data and the corresponding processing intent are persisted atomically.
 

@@ -3,11 +3,7 @@ import { TransactionStatus, TransactionStep } from '@prisma/client';
 
 export class TransactionPersistenceDto {
   @Expose()
-  @Transform((params: TransformFnParams): string | null => {
-    const value = params.value as string | undefined;
-    return value ?? null;
-  })
-  transactionId: string | null;
+  transactionId: string;
 
   @Expose()
   userId: string;

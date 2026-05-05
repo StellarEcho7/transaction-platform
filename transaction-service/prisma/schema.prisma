@@ -41,7 +41,7 @@ model Batch {
 
 model Transaction {
   id                  String           @id @default(cuid())
-  transactionId       String?
+  transactionId       String           @unique
   userId              String
   amount              Float
   currency            String

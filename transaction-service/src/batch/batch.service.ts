@@ -18,7 +18,6 @@ import {
   TransactionStatus,
   OutboxEventStatus,
 } from '../transaction/constants';
-import { createId } from '@paralleldrive/cuid2';
 
 @Injectable()
 export class BatchService {
@@ -30,7 +29,7 @@ export class BatchService {
   async create(createBatchDto: CreateBatchDto): Promise<BatchResponseDto> {
     const batchName = createBatchDto.batchName || this.generateBatchName();
     const transactionIds = createBatchDto.transactions.map(
-      (t) => t.transactionId || createId(),
+      (t) => t.transactionId,
     );
 
     const batch = await this.prisma.$transaction(async (tx) => {
