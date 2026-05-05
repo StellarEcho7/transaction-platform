@@ -5,4 +5,5 @@ export class BatchResponseDto {
   total: number;
   processed: number;
   failed: number;
+  createdAt: Date;
 }

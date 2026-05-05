@@ -1,9 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionDto } from './dto/transaction.dto';
 import { TransactionPersistenceDto } from './dto/transaction-persistence.dto';
 import { TransactionStatus, TransactionStep } from './constants';
+import { TransactionDetailDto } from '../batch/dto/transaction-detail.dto';
+import { PaginationResponseDto } from '../batch/dto/pagination-response.dto';
+import { TransactionListQueryDto } from '../batch/dto/transaction-list-query.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -108,5 +111,48 @@ export class TransactionService {
       where: { id },
       data: { riskScore, fraudFlags },
     });
+  }
+
+  async findById(id: string): Promise<TransactionDetailDto> {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { id },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException(`Transaction with ID ${id} not found`);
+    }
+
+    return plainToInstance(TransactionDetailDto, transaction);
+  }
+
+  async findByBatchId(
+    batchId: string,
+    query: TransactionListQueryDto,
+  ): Promise<{
+    data: TransactionDetailDto[];
+    pagination: PaginationResponseDto;
+  }> {
+    const { page = 1, limit = 20, status } = query;
+    const where = { batchId, ...(status ? { status } : {}) };
+
+    const [transactions, total] = await Promise.all([
+      this.prisma.transaction.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.transaction.count({ where }),
+    ]);
+
+    return {
+      data: plainToInstance(TransactionDetailDto, transactions),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }

@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { BatchResponseDto } from './dto/batch-response.dto';
+import { BatchListQueryDto } from './dto/batch-list-query.dto';
+import { BatchDetailDto } from './dto/batch-detail.dto';
+import { TransactionDetailDto } from './dto/transaction-detail.dto';
+import { PaginationResponseDto } from './dto/pagination-response.dto';
 import { BatchStatus } from './constants/batch-status';
+import { TransactionListQueryDto } from './dto/transaction-list-query.dto';
 import {
   TransactionStep,
   TransactionStatus,
@@ -114,5 +119,76 @@ export class BatchService {
       minute: '2-digit',
       hour12: true,
     })})`;
+  }
+
+  async findAll(
+    query: BatchListQueryDto,
+  ): Promise<{ data: BatchResponseDto[]; pagination: PaginationResponseDto }> {
+    const { page = 1, limit = 10, status } = query;
+    const where = status ? { status } : {};
+
+    const [batches, total] = await Promise.all([
+      this.prisma.batch.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.batch.count({ where }),
+    ]);
+
+    return {
+      data: plainToInstance(BatchResponseDto, batches),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findById(id: string): Promise<BatchDetailDto> {
+    const batch = await this.prisma.batch.findUnique({
+      where: { id },
+      include: { transactions: false },
+    });
+
+    if (!batch) {
+      throw new NotFoundException(`Batch with ID ${id} not found`);
+    }
+
+    return plainToInstance(BatchDetailDto, batch);
+  }
+
+  async findTransactionsByBatchId(
+    batchId: string,
+    query: TransactionListQueryDto,
+  ): Promise<{
+    data: TransactionDetailDto[];
+    pagination: PaginationResponseDto;
+  }> {
+    const { page = 1, limit = 20, status } = query;
+    const where = { batchId, ...(status ? { status } : {}) };
+
+    const [transactions, total] = await Promise.all([
+      this.prisma.transaction.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.transaction.count({ where }),
+    ]);
+
+    return {
+      data: plainToInstance(TransactionDetailDto, transactions),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }
