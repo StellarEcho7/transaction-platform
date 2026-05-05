@@ -6,7 +6,10 @@ import { BatchResponseDto } from './dto/batch-response.dto';
 import { BatchListQueryDto } from './dto/batch-list-query.dto';
 import { BatchDetailDto } from './dto/batch-detail.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
-import { BatchStatus } from './constants/batch-status';
+import {
+  BatchStatus,
+  BatchSource,
+} from './constants';
 import { TransactionListQueryDto } from './dto/transaction-list-query.dto';
 import { TransactionDetailDto } from './dto/transaction-detail.dto';
 import { TransactionService } from '../transaction/transaction.service';
@@ -38,6 +41,7 @@ export class BatchService {
           total: createBatchDto.transactions.length,
           processed: 0,
           failed: 0,
+          source: createBatchDto.source ?? BatchSource.API,
         },
       });
 
