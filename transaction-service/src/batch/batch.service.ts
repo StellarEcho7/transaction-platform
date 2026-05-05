@@ -1,18 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
-import { TransactionService } from '../transaction/transaction.service';
-import { QueueService } from '../queue/queue.service';
+import { OutboxService } from '../outbox/outbox.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { BatchResponseDto } from './dto/batch-response.dto';
-import { BatchStatus } from '@prisma/client';
+import { BatchStatus, TransactionStep } from '@prisma/client';
 
 @Injectable()
 export class BatchService {
   constructor(
     private prisma: PrismaService,
-    private transactionService: TransactionService,
-    private queueService: QueueService,
+    private outboxService: OutboxService,
   ) {}
 
   async create(createBatchDto: CreateBatchDto): Promise<BatchResponseDto> {
@@ -29,20 +27,33 @@ export class BatchService {
         },
       });
 
-      await this.transactionService.createMany(
-        batch.id,
-        createBatchDto.transactions,
-      );
+      const transactions = await tx.transaction.createManyAndReturn({
+        data: createBatchDto.transactions.map((t) => ({
+          transactionId: t.transactionId || undefined,
+          userId: t.userId,
+          amount: t.amount,
+          currency: t.currency,
+          timestamp: new Date(t.timestamp),
+          merchant: t.merchant,
+          category: t.category,
+          batchId: batch.id,
+          status: 'PENDING' as const,
+          currentStep: TransactionStep.VALIDATE,
+        })),
+      });
 
-      return plainToInstance(BatchResponseDto, batch);
+      await tx.outboxEvent.createMany({
+        data: transactions.map((tx) => ({
+          transactionId: tx.id,
+          step: TransactionStep.VALIDATE,
+          status: 'PENDING',
+        })),
+      });
+
+      return batch;
     });
 
-    const transactions = await this.transactionService.findAllByBatchId(
-      batch.id,
-    );
-    await this.queueService.addTransactionJobs(transactions);
-
-    return batch;
+    return plainToInstance(BatchResponseDto, batch);
   }
 
   private generateBatchName(): string {

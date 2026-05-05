@@ -1,7 +1,7 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bullmq';
 import { WorkersService } from './workers.service';
-import { QueueService } from '../queue/queue.service';
+import { OutboxService } from '../outbox/outbox.service';
 import { TransactionStep, TransactionStatus } from '@prisma/client';
 
 export interface TransactionJobData {
@@ -13,7 +13,7 @@ export interface TransactionJobData {
 export class EnrichProcessor {
   constructor(
     private readonly workersService: WorkersService,
-    private readonly queueService: QueueService,
+    private readonly outboxService: OutboxService,
   ) {}
 
   @Process('process-transaction')
@@ -51,7 +51,10 @@ export class EnrichProcessor {
       TransactionStatus.PENDING,
     );
 
-    await this.queueService.addJob(transactionId, 'ANALYZE');
+    await this.outboxService.createEvent(
+      transactionId,
+      TransactionStep.ANALYZE,
+    );
   }
 
   private enrichTransaction(tx: {

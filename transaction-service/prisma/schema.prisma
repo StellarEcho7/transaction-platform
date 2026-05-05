@@ -58,4 +58,16 @@ model Transaction {
   processingStartedAt DateTime?
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
+
+  outboxEvents        OutboxEvent[]
+}
+
+model OutboxEvent {
+  id            String   @id @default(cuid())
+  transactionId String
+  step          TransactionStep
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  processedAt   DateTime?
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
 }
