@@ -1,12 +1,13 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bullmq';
-import { WorkersService } from './workers.service';
+import { TransactionService } from '../transaction/transaction.service';
 import { OutboxService } from '../outbox/outbox.service';
 import {
   TransactionStep,
   TransactionStatus,
   OperationType,
 } from '../transaction/constants';
+import { DEDUPLICATION_INTERVAL_MS } from '../shared/constants';
 import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
 
 export interface EnrichJobData {
@@ -16,7 +17,7 @@ export interface EnrichJobData {
 @Processor(QUEUE_NAME)
 export class EnrichProcessor {
   constructor(
-    private readonly workersService: WorkersService,
+    private readonly transactionService: TransactionService,
     private readonly outboxService: OutboxService,
   ) {}
 
@@ -24,7 +25,7 @@ export class EnrichProcessor {
   async handle(job: Job<EnrichJobData>): Promise<void> {
     const { transactionId } = job.data;
 
-    const tx = await this.workersService.getTransaction(transactionId);
+    const tx = await this.transactionService.getTransaction(transactionId);
 
     if (!tx || tx.currentStep === null) {
       return;
@@ -32,22 +33,22 @@ export class EnrichProcessor {
 
     if (
       tx.status === TransactionStatus.PROCESSING &&
-      !this.workersService.isProcessingStale(tx.processingStartedAt)
+      !this.isProcessingStale(tx.processingStartedAt)
     ) {
       return;
     }
 
-    await this.workersService.markProcessing(transactionId);
+    await this.transactionService.markProcessing(transactionId);
 
     const enrichedData = this.enrichTransaction(tx);
 
-    await this.workersService.enrichTransaction(
+    await this.transactionService.enrichTransaction(
       transactionId,
       enrichedData.region,
       enrichedData.operationType,
     );
 
-    await this.workersService.advanceToNextStep(
+    await this.transactionService.advanceToNextStep(
       transactionId,
       TransactionStep.ANALYZE,
       TransactionStatus.PENDING,
@@ -57,6 +58,12 @@ export class EnrichProcessor {
       transactionId,
       TransactionStep.ANALYZE,
     );
+  }
+
+  private isProcessingStale(processingStartedAt: Date | null): boolean {
+    if (!processingStartedAt) return true;
+    const staleThreshold = new Date(Date.now() - DEDUPLICATION_INTERVAL_MS);
+    return processingStartedAt < staleThreshold;
   }
 
   private enrichTransaction(tx: {

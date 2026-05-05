@@ -62,6 +62,48 @@ export class BatchService {
     return plainToInstance(BatchResponseDto, batch);
   }
 
+  async incrementProcessed(batchId: string): Promise<void> {
+    const batch = await this.prisma.batch.findUnique({
+      where: { id: batchId },
+    });
+
+    if (!batch) return;
+
+    const newProcessed = batch.processed + 1;
+
+    await this.prisma.batch.update({
+      where: { id: batchId },
+      data: {
+        processed: newProcessed,
+        status:
+          newProcessed + batch.failed >= batch.total
+            ? BatchStatus.COMPLETED
+            : batch.status,
+      },
+    });
+  }
+
+  async incrementFailed(batchId: string): Promise<void> {
+    const batch = await this.prisma.batch.findUnique({
+      where: { id: batchId },
+    });
+
+    if (!batch) return;
+
+    const newFailed = batch.failed + 1;
+
+    await this.prisma.batch.update({
+      where: { id: batchId },
+      data: {
+        failed: newFailed,
+        status:
+          newFailed + batch.processed >= batch.total
+            ? BatchStatus.COMPLETED
+            : batch.status,
+      },
+    });
+  }
+
   private generateBatchName(): string {
     const date = new Date();
     return `Batch (${date.toLocaleString('en-US', {

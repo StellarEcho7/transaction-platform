@@ -1,8 +1,10 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bullmq';
-import { WorkersService } from './workers.service';
+import { TransactionService } from '../transaction/transaction.service';
+import { BatchService } from '../batch/batch.service';
 import { OutboxService } from '../outbox/outbox.service';
 import { TransactionStep, TransactionStatus } from '../transaction/constants';
+import { DEDUPLICATION_INTERVAL_MS } from '../shared/constants';
 import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
 
 export interface ValidateJobData {
@@ -12,7 +14,8 @@ export interface ValidateJobData {
 @Processor(QUEUE_NAME)
 export class ValidateProcessor {
   constructor(
-    private readonly workersService: WorkersService,
+    private readonly transactionService: TransactionService,
+    private readonly batchService: BatchService,
     private readonly outboxService: OutboxService,
   ) {}
 
@@ -20,7 +23,7 @@ export class ValidateProcessor {
   async handle(job: Job<ValidateJobData>): Promise<void> {
     const { transactionId } = job.data;
 
-    const tx = await this.workersService.getTransaction(transactionId);
+    const tx = await this.transactionService.getTransaction(transactionId);
 
     if (!tx || tx.currentStep === null) {
       return;
@@ -28,27 +31,36 @@ export class ValidateProcessor {
 
     if (
       tx.status === TransactionStatus.PROCESSING &&
-      !this.workersService.isProcessingStale(tx.processingStartedAt)
+      !this.isProcessingStale(tx.processingStartedAt)
     ) {
       return;
     }
 
-    await this.workersService.markProcessing(transactionId);
+    await this.transactionService.markProcessing(transactionId);
 
     const validationResult = this.validateTransaction(tx);
 
     if (!validationResult.valid) {
-      await this.workersService.markAsFailed(transactionId);
+      const batchId = await this.transactionService.markAsFailed(transactionId);
+      if (batchId) {
+        await this.batchService.incrementFailed(batchId);
+      }
       return;
     }
 
-    await this.workersService.advanceToNextStep(
+    await this.transactionService.advanceToNextStep(
       transactionId,
       TransactionStep.ENRICH,
       TransactionStatus.PENDING,
     );
 
     await this.outboxService.createEvent(transactionId, TransactionStep.ENRICH);
+  }
+
+  private isProcessingStale(processingStartedAt: Date | null): boolean {
+    if (!processingStartedAt) return true;
+    const staleThreshold = new Date(Date.now() - DEDUPLICATION_INTERVAL_MS);
+    return processingStartedAt < staleThreshold;
   }
 
   private validateTransaction(tx: {

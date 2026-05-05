@@ -8,5 +8,6 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [OutboxModule, PrismaModule],
   controllers: [BatchController],
   providers: [BatchService],
+  exports: [BatchService],
 })
 export class BatchModule {}

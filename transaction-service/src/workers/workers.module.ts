@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
-import { WorkersService } from './workers.service';
 import { ValidateProcessor } from './validate.processor';
 import { EnrichProcessor } from './enrich.processor';
 import { AnalyzeProcessor } from './analyze.processor';
 import { QueueModule } from '../queue/queue.module';
 import { OutboxModule } from '../outbox/outbox.module';
+import { BatchModule } from '../batch/batch.module';
+import { TransactionModule } from '../transaction/transaction.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { QUEUE_NAME } from '../queue/constants';
 
@@ -16,14 +17,11 @@ import { QUEUE_NAME } from '../queue/constants';
     }),
     QueueModule,
     OutboxModule,
+    BatchModule,
+    TransactionModule,
     PrismaModule,
   ],
-  providers: [
-    WorkersService,
-    ValidateProcessor,
-    EnrichProcessor,
-    AnalyzeProcessor,
-  ],
-  exports: [WorkersService],
+  providers: [ValidateProcessor, EnrichProcessor, AnalyzeProcessor],
+  exports: [],
 })
 export class WorkersModule {}
