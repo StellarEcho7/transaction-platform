@@ -5,10 +5,11 @@ import { CreateBatchDto } from './dto/create-batch.dto';
 import { BatchResponseDto } from './dto/batch-response.dto';
 import { BatchListQueryDto } from './dto/batch-list-query.dto';
 import { BatchDetailDto } from './dto/batch-detail.dto';
-import { TransactionDetailDto } from './dto/transaction-detail.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
 import { BatchStatus } from './constants/batch-status';
 import { TransactionListQueryDto } from './dto/transaction-list-query.dto';
+import { TransactionDetailDto } from './dto/transaction-detail.dto';
+import { TransactionService } from '../transaction/transaction.service';
 import {
   TransactionStep,
   TransactionStatus,
@@ -18,7 +19,10 @@ import { createId } from '@paralleldrive/cuid2';
 
 @Injectable()
 export class BatchService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private transactionService: TransactionService,
+  ) {}
 
   async create(createBatchDto: CreateBatchDto): Promise<BatchResponseDto> {
     const batchName = createBatchDto.batchName || this.generateBatchName();
@@ -168,27 +172,6 @@ export class BatchService {
     data: TransactionDetailDto[];
     pagination: PaginationResponseDto;
   }> {
-    const { page = 1, limit = 20, status } = query;
-    const where = { batchId, ...(status ? { status } : {}) };
-
-    const [transactions, total] = await Promise.all([
-      this.prisma.transaction.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.transaction.count({ where }),
-    ]);
-
-    return {
-      data: plainToInstance(TransactionDetailDto, transactions),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return this.transactionService.findByBatchId(batchId, query);
   }
 }
