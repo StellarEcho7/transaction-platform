@@ -17,7 +17,9 @@ export class BatchService {
 
   async create(createBatchDto: CreateBatchDto): Promise<BatchResponseDto> {
     const batchName = createBatchDto.batchName || this.generateBatchName();
-    const transactionIds = createBatchDto.transactions.map(() => createId());
+    const transactionIds = createBatchDto.transactions.map(
+      (t) => t.transactionId || createId(),
+    );
 
     const batch = await this.prisma.$transaction(async (tx) => {
       const batch = await tx.batch.create({
@@ -33,7 +35,7 @@ export class BatchService {
       await tx.transaction.createMany({
         data: createBatchDto.transactions.map((t, index) => ({
           id: transactionIds[index],
-          transactionId: t.transactionId || null,
+          transactionId: t.transactionId,
           userId: t.userId,
           amount: t.amount,
           currency: t.currency,
