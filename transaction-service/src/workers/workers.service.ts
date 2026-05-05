@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionStatus, TransactionStep } from '../transaction/constants';
 import { BatchStatus } from '../batch/constants';
+import { DEDUPLICATION_INTERVAL_MS } from '../shared/constants';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -123,8 +124,8 @@ export class WorkersService {
 
   isProcessingStale(processingStartedAt: Date | null): boolean {
     if (!processingStartedAt) return true;
-    const sixtySecondsAgo = new Date(Date.now() - 60 * 1000);
-    return processingStartedAt < sixtySecondsAgo;
+    const staleThreshold = new Date(Date.now() - DEDUPLICATION_INTERVAL_MS);
+    return processingStartedAt < staleThreshold;
   }
 
   async enrichTransaction(

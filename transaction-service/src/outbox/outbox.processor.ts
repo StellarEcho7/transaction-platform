@@ -2,6 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { OutboxService } from './outbox.service';
 import { QueueService } from '../queue/queue.service';
+import {
+  JOB_NAME,
+  RETRY_ATTEMPTS,
+  RETRY_BACKOFF_DELAY,
+} from '../queue/constants';
+import { OUTBOX_POLL_INTERVAL_MS } from '../shared/constants';
 
 @Injectable()
 export class OutboxProcessor {
@@ -13,7 +19,7 @@ export class OutboxProcessor {
     private readonly queueService: QueueService,
   ) {}
 
-  @Interval(1000)
+  @Interval(OUTBOX_POLL_INTERVAL_MS)
   async process(): Promise<void> {
     if (this.isProcessing) return;
 
@@ -24,15 +30,15 @@ export class OutboxProcessor {
       for (const event of events) {
         try {
           await this.queueService.publish({
-            name: 'process-transaction',
+            name: JOB_NAME,
             data: {
               transactionId: event.transactionId,
               step: event.step,
             },
             opts: {
               jobId: `${event.transactionId}-${event.step}`,
-              attempts: 5,
-              backoff: { type: 'exponential', delay: 2000 },
+              attempts: RETRY_ATTEMPTS,
+              backoff: { type: 'exponential', delay: RETRY_BACKOFF_DELAY },
               removeOnComplete: false,
               removeOnFail: false,
             },

@@ -2,6 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { OutboxService } from '../outbox/outbox.service';
+import {
+  RECOVERY_POLL_INTERVAL_MS,
+  DEDUPLICATION_INTERVAL_MS,
+} from '../shared/constants';
 
 @Injectable()
 export class RecoveryWorker {
@@ -13,13 +17,13 @@ export class RecoveryWorker {
     private readonly outboxService: OutboxService,
   ) {}
 
-  @Interval(30000)
+  @Interval(RECOVERY_POLL_INTERVAL_MS)
   async recover(): Promise<void> {
     if (this.isProcessing) return;
 
     this.isProcessing = true;
     try {
-      const staleThreshold = new Date(Date.now() - 60 * 1000);
+      const staleThreshold = new Date(Date.now() - DEDUPLICATION_INTERVAL_MS);
 
       const stuckTransactions = await this.prisma.transaction.findMany({
         where: {

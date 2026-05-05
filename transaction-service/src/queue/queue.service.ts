@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bullmq';
+import { QUEUE_NAME } from './constants';
 
 export interface QueueJob {
   name: string;
@@ -17,7 +18,7 @@ export interface QueueJob {
 @Injectable()
 export class QueueService {
   constructor(
-    @InjectQueue('transaction-processing')
+    @InjectQueue(QUEUE_NAME)
     private readonly transactionQueue: Queue,
   ) {}
 

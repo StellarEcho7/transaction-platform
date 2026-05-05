@@ -3,20 +3,21 @@ import { Job } from 'bullmq';
 import { WorkersService } from './workers.service';
 import { OutboxService } from '../outbox/outbox.service';
 import { TransactionStep, TransactionStatus } from '../transaction/constants';
+import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
 
 export interface TransactionJobData {
   transactionId: string;
   step: 'VALIDATE' | 'ENRICH' | 'ANALYZE';
 }
 
-@Processor('transaction-processing')
+@Processor(QUEUE_NAME)
 export class ValidateProcessor {
   constructor(
     private readonly workersService: WorkersService,
     private readonly outboxService: OutboxService,
   ) {}
 
-  @Process('process-transaction')
+  @Process(JOB_NAME)
   async handle(job: Job<TransactionJobData>): Promise<void> {
     const { transactionId, step } = job.data;
 

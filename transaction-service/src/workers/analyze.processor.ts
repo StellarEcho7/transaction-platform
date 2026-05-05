@@ -1,18 +1,25 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bullmq';
 import { WorkersService } from './workers.service';
-import { TransactionStep, TransactionStatus } from '../transaction/constants';
+import {
+  TransactionStep,
+  TransactionStatus,
+  FraudFlag,
+  HIGH_AMOUNT_THRESHOLD,
+  MEDIUM_AMOUNT_THRESHOLD,
+} from '../transaction/constants';
+import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
 
 export interface TransactionJobData {
   transactionId: string;
   step: 'VALIDATE' | 'ENRICH' | 'ANALYZE';
 }
 
-@Processor('transaction-processing')
+@Processor(QUEUE_NAME)
 export class AnalyzeProcessor {
   constructor(private readonly workersService: WorkersService) {}
 
-  @Process('process-transaction')
+  @Process(JOB_NAME)
   async handle(job: Job<TransactionJobData>): Promise<void> {
     const { transactionId, step } = job.data;
 
@@ -57,10 +64,10 @@ export class AnalyzeProcessor {
     const merchant = tx.merchant || '';
     const region = tx.region || 'UNKNOWN';
 
-    if (amount > 10000) {
-      fraudFlags.push('HIGH_AMOUNT');
+    if (amount > HIGH_AMOUNT_THRESHOLD) {
+      fraudFlags.push(FraudFlag.HIGH_AMOUNT);
       riskScore += 0.4;
-    } else if (amount > 5000) {
+    } else if (amount > MEDIUM_AMOUNT_THRESHOLD) {
       riskScore += 0.2;
     }
 
@@ -75,12 +82,12 @@ export class AnalyzeProcessor {
       merchant.toLowerCase().includes(suspicious),
     );
     if (isSuspiciousMerchant) {
-      fraudFlags.push('SUSPICIOUS_MERCHANT');
+      fraudFlags.push(FraudFlag.SUSPICIOUS_MERCHANT);
       riskScore += 0.5;
     }
 
     if (region === 'UNKNOWN') {
-      fraudFlags.push('UNKNOWN_REGION');
+      fraudFlags.push(FraudFlag.UNKNOWN_REGION);
       riskScore += 0.2;
     }
 

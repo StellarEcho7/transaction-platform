@@ -1,0 +1,2 @@
+export const HIGH_AMOUNT_THRESHOLD = 10000;
+export const MEDIUM_AMOUNT_THRESHOLD = 5000;

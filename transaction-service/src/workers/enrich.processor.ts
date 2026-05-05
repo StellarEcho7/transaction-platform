@@ -2,21 +2,26 @@ import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bullmq';
 import { WorkersService } from './workers.service';
 import { OutboxService } from '../outbox/outbox.service';
-import { TransactionStep, TransactionStatus } from '../transaction/constants';
+import {
+  TransactionStep,
+  TransactionStatus,
+  OperationType,
+} from '../transaction/constants';
+import { QUEUE_NAME, JOB_NAME } from '../queue/constants';
 
 export interface TransactionJobData {
   transactionId: string;
   step: 'VALIDATE' | 'ENRICH' | 'ANALYZE';
 }
 
-@Processor('transaction-processing')
+@Processor(QUEUE_NAME)
 export class EnrichProcessor {
   constructor(
     private readonly workersService: WorkersService,
     private readonly outboxService: OutboxService,
   ) {}
 
-  @Process('process-transaction')
+  @Process(JOB_NAME)
   async handle(job: Job<TransactionJobData>): Promise<void> {
     const { transactionId, step } = job.data;
 
@@ -84,7 +89,8 @@ export class EnrichProcessor {
       region = 'EU';
     }
 
-    const operationType = amount < 0 ? 'REFUND' : 'PURCHASE';
+    const operationType =
+      amount < 0 ? OperationType.REFUND : OperationType.PURCHASE;
 
     return { region, operationType };
   }

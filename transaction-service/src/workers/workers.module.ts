@@ -7,11 +7,12 @@ import { AnalyzeProcessor } from './analyze.processor';
 import { QueueModule } from '../queue/queue.module';
 import { OutboxModule } from '../outbox/outbox.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { QUEUE_NAME } from '../queue/constants';
 
 @Module({
   imports: [
     BullModule.registerQueue({
-      name: 'transaction-processing',
+      name: QUEUE_NAME,
     }),
     QueueModule,
     OutboxModule,

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ConfigService } from '@nestjs/config';
 import { QueueService } from './queue.service';
+import { QUEUE_NAME } from './constants';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { QueueService } from './queue.service';
       inject: [ConfigService],
     }),
     BullModule.registerQueue({
-      name: 'transaction-processing',
+      name: QUEUE_NAME,
     }),
   ],
   providers: [QueueService],

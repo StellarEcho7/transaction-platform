@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionStep, OutboxEventStatus } from '../transaction/constants';
 
+const OUTBOX_QUERY_LIMIT = 100;
+
 @Injectable()
 export class OutboxService {
   constructor(private prisma: PrismaService) {}
@@ -32,7 +34,7 @@ export class OutboxService {
     });
   }
 
-  async getUnprocessed(limit: number = 100): Promise<
+  async getUnprocessed(limit: number = OUTBOX_QUERY_LIMIT): Promise<
     {
       id: string;
       transactionId: string;
