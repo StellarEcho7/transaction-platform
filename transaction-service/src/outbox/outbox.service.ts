@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { TransactionStep } from '@prisma/client';
+import { TransactionStep, OutboxEventStatus } from '../transaction/constants';
 
 @Injectable()
 export class OutboxService {
@@ -14,7 +14,7 @@ export class OutboxService {
       data: {
         transactionId,
         step,
-        status: 'PENDING',
+        status: OutboxEventStatus.PENDING,
       },
     });
   }
@@ -27,7 +27,7 @@ export class OutboxService {
       data: events.map((e) => ({
         transactionId: e.transactionId,
         step: e.step,
-        status: 'PENDING',
+        status: OutboxEventStatus.PENDING,
       })),
     });
   }
@@ -41,7 +41,7 @@ export class OutboxService {
   > {
     return this.prisma.outboxEvent.findMany({
       where: {
-        status: 'PENDING',
+        status: OutboxEventStatus.PENDING,
         processedAt: null,
       },
       take: limit,
@@ -53,7 +53,7 @@ export class OutboxService {
     await this.prisma.outboxEvent.update({
       where: { id },
       data: {
-        status: 'PROCESSED',
+        status: OutboxEventStatus.PROCESSED,
         processedAt: new Date(),
       },
     });
@@ -67,7 +67,7 @@ export class OutboxService {
       where: {
         transactionId,
         step,
-        status: 'PENDING',
+        status: OutboxEventStatus.PENDING,
         processedAt: null,
       },
       select: { id: true },

@@ -1,7 +1,7 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bullmq';
 import { WorkersService } from './workers.service';
-import { TransactionStatus } from '@prisma/client';
+import { TransactionStep, TransactionStatus } from '../transaction/constants';
 
 export interface TransactionJobData {
   transactionId: string;
@@ -16,7 +16,7 @@ export class AnalyzeProcessor {
   async handle(job: Job<TransactionJobData>): Promise<void> {
     const { transactionId, step } = job.data;
 
-    if (step !== 'ANALYZE') return;
+    if (step !== TransactionStep.ANALYZE) return;
 
     const tx = await this.workersService.getTransaction(transactionId);
 

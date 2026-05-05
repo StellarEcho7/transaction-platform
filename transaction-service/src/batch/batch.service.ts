@@ -4,7 +4,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { OutboxService } from '../outbox/outbox.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { BatchResponseDto } from './dto/batch-response.dto';
-import { BatchStatus, TransactionStep } from '@prisma/client';
+import { BatchStatus } from './constants/batch-status';
+import {
+  TransactionStep,
+  TransactionStatus,
+  OutboxEventStatus,
+} from '../transaction/constants';
 
 @Injectable()
 export class BatchService {
@@ -37,7 +42,7 @@ export class BatchService {
           merchant: t.merchant,
           category: t.category,
           batchId: batch.id,
-          status: 'PENDING' as const,
+          status: TransactionStatus.PENDING,
           currentStep: TransactionStep.VALIDATE,
         })),
       });
@@ -46,7 +51,7 @@ export class BatchService {
         data: transactions.map((tx) => ({
           transactionId: tx.id,
           step: TransactionStep.VALIDATE,
-          status: 'PENDING',
+          status: OutboxEventStatus.PENDING,
         })),
       });
 

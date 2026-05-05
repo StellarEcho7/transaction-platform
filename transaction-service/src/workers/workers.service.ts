@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  TransactionStatus,
-  TransactionStep,
-  BatchStatus,
-  Prisma,
-} from '@prisma/client';
+import { TransactionStatus, TransactionStep } from '../transaction/constants';
+import { BatchStatus } from '../batch/constants';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class WorkersService {

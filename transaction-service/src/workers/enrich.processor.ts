@@ -2,7 +2,7 @@ import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bullmq';
 import { WorkersService } from './workers.service';
 import { OutboxService } from '../outbox/outbox.service';
-import { TransactionStep, TransactionStatus } from '@prisma/client';
+import { TransactionStep, TransactionStatus } from '../transaction/constants';
 
 export interface TransactionJobData {
   transactionId: string;
@@ -20,7 +20,7 @@ export class EnrichProcessor {
   async handle(job: Job<TransactionJobData>): Promise<void> {
     const { transactionId, step } = job.data;
 
-    if (step !== 'ENRICH') return;
+    if (step !== TransactionStep.ENRICH) return;
 
     const tx = await this.workersService.getTransaction(transactionId);
 
