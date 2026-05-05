@@ -22,18 +22,23 @@ As a developer, I want transactions to automatically enter the processing queue 
 ## Scope
 
 **MVP**
-- QueueModule with QueueService for job creation
-- OutboxReaderModule for reading outbox events and publishing to queue
-- WorkersModule with worker logic for all three steps
+- QueueModule + QueueService (low-level transport, no domain knowledge)
+- OutboxModule + OutboxService + OutboxProcessor (reads events, publishes to queue)
+- WorkersModule with 3 processors (validate, enrich, analyze) - each contains step logic
 - Idempotency protection (status + processingStartedAt check)
 - Batch counters (processed/failed) update on transaction completion
-- RecoveryWorker for re-enqueueing stuck transactions
+- RecoveryWorker - recreates MISSING outbox events (NOT direct queue publish)
 
 **Out of scope**
 - UI for queue monitoring
 - Dead Letter Queue handling
 - Metrics/observability
 - Worker scaling beyond 2 instances
+
+**Architecture Constraint**
+- ONLY OutboxProcessor writes to queue
+- ALL other components (API, workers, recovery) go through outbox
+- This guarantees consistency between DB and queue
 
 ## Technical Plan
 
@@ -42,20 +47,19 @@ As a developer, I want transactions to automatically enter the processing queue 
 transaction-service/src/
 ├── queue/
 │   ├── queue.module.ts           # BullModule.forFeature
-│   └── queue.service.ts          # addTransactionJobs()
+│   └── queue.service.ts          # low-level publish(), no domain knowledge
 ├── outbox/
-│   ├── outbox.module.ts          # OutboxReader module
-│   ├── outbox.reader.ts          # Reads unprocessed events, publishes to queue
-│   └── outbox.service.ts         # Manages outbox table
+│   ├── outbox.module.ts          # Outbox module
+│   ├── outbox.processor.ts       # Reads unprocessed events → publishes to queue
+│   └── outbox.service.ts         # createEvent() for creating outbox records
 ├── recovery/
 │   ├── recovery.module.ts        # RecoveryWorker module
-│   └── recovery.worker.ts        # Re-enqueues stuck transactions
+│   └── recovery.worker.ts        # Recreates missing outbox events for stuck transactions
 ├── workers/
 │   ├── workers.module.ts         # NestJS module, registers BullModule processors
-│   ├── workers.service.ts        # processValidate(), processEnrich(), processAnalyze()
-│   ├── validate.worker.ts        # VALIDATE step logic
-│   ├── enrich.worker.ts          # ENRICH step logic
-│   └── analyze.worker.ts         # ANALYZE step logic
+│   ├── validate.processor.ts     # VALIDATE step - listens to queue, contains logic
+│   ├── enrich.processor.ts       # ENRICH step - listens to queue, contains logic
+│   └── analyze.processor.ts     # ANALYZE step - listens to queue, contains logic
 ```
 
 ### Files to modify:
@@ -82,15 +86,18 @@ When batch is created, within same DB transaction:
 }
 ```
 
-### Outbox Reader Logic
+### Outbox Processor Logic
 - Continuously polls unprocessed outbox events
-- For each event: creates BullMQ job, marks event as processed (only after successful delivery)
+- For each event: calls queueService.publish() with job data, marks event as processed (only after successful delivery)
 - Decouples DB writes from queue operations
+- The ONLY component that writes to queue (besides tests)
 
-### Queue Job Creation
+### Queue Service (low-level transport)
 ```typescript
-await queueService.addTransactionJobs(transactions, batchId);
+await queueService.publish({ type: string, payload: object });
 ```
+- No knowledge of transactions or steps
+- Simple transport layer
 
 ### Job Data
 ```typescript
@@ -111,7 +118,12 @@ await queueService.addTransactionJobs(transactions, batchId);
 }
 ```
 
-### Worker Logic (each step)
+### Worker/Processor Logic (each step)
+Each processor file (validate.processor.ts, enrich.processor.ts, analyze.processor.ts):
+- Listens to queue for its step
+- Contains full step logic (no separate service layer)
+- On success: updates transaction, creates outbox event for next step (except ANALYZE)
+- On failure: marks FAILED_FINAL after retry exhaustion
 ```
 1. Get transaction by transactionId
 2. If currentStep === null → skip (already processed)
@@ -126,76 +138,80 @@ await queueService.addTransactionJobs(transactions, batchId);
 ### Recovery Worker Logic
 ```
 - Periodically query transactions where currentStep != null AND updatedAt is stale
-- For each stuck transaction: create outbox event if needed, re-enqueue
-- Handles cases where job was not created or was lost
+- For each stuck transaction: recreate missing outbox event (if none exists for currentStep)
+- Creates outbox event → outbox processor will pick it up and publish to queue
+- This maintains consistency: ALL paths go through outbox
+- Does NOT directly publish to queue (that would break the outbox pattern)
 ```
 
 ## Tasks
 
-1. **Create QueueModule and QueueService**  
+1. **Create QueueModule and QueueService** (low-level transport)  
    - Create `src/queue/queue.module.ts` with BullModule configuration  
-   - Create `src/queue/queue.service.ts` with `addTransactionJobs()` method  
+   - Create `src/queue/queue.service.ts` with `publish({ type, payload })` method  
+   - NO domain knowledge (no transaction/step constants)  
    - Files: `queue.module.ts`, `queue.service.ts`
 
 2. **Create OutboxModule and OutboxService**  
    - Create `src/outbox/outbox.module.ts`  
-   - Create `src/outbox/outbox.service.ts` for managing outbox table  
-   - Create `src/outbox/outbox.reader.ts` - background worker that reads unprocessed events and publishes to queue  
-   - Files: `outbox.module.ts`, `outbox.service.ts`, `outbox.reader.ts`
+   - Create `src/outbox/outbox.service.ts` with `createEvent()` method  
+   - Create `src/outbox/outbox.processor.ts` - polls unprocessed events, publishes to queue  
+   - Files: `outbox.module.ts`, `outbox.service.ts`, `outbox.processor.ts`
 
 3. **Integrate outbox into BatchService**  
    - Modify batch creation to create outbox events for first step (VALIDATE) in same DB transaction  
    - File: `batch.service.ts`
 
-4. **Create WorkersModule and WorkersService**  
-   - Create `src/workers/workers.module.ts`  
-   - Create `src/workers/workers.service.ts` with process methods for each step  
-   - Files: `workers.module.ts`, `workers.service.ts`
+4. **Create WorkersModule**  
+   - Create `src/workers/workers.module.ts` - registers all processor handlers
 
-5. **Implement VALIDATE step**  
+5. **Implement VALIDATE processor**  
+   - Create `src/workers/validate.processor.ts` - listens to queue, contains step logic  
    - Check required fields, types, amount > 0  
-   - Advance to ENRICH on success, mark FAILED_FINAL on validation error  
-   - Create outbox event for next step  
-   - File: `validate.worker.ts`
+   - On success: advance to ENRICH, create outbox event  
+   - On failure: mark FAILED_FINAL after retries  
 
-6. **Implement ENRICH step**  
+6. **Implement ENRICH processor**  
+   - Create `src/workers/enrich.processor.ts` - listens to queue, contains step logic  
    - Add region (derived from merchant), operationType (purchase/refund)  
-   - Advance to ANALYZE on success  
-   - Create outbox event for next step  
-   - File: `enrich.worker.ts`
+   - On success: advance to ANALYZE, create outbox event  
 
-7. **Implement ANALYZE step**  
+7. **Implement ANALYZE processor**  
+   - Create `src/workers/analyze.processor.ts` - listens to queue, contains step logic  
    - Calculate riskScore (0-1) based on rules: high amount, velocity, suspicious merchant  
    - Generate fraudFlags array  
-   - Mark transaction as COMPLETED (currentStep = null)  
-   - File: `analyze.worker.ts`
+   - On finish: mark COMPLETED (currentStep = null)  
 
 8. **Update batch counters on completion**  
-   - In WorkersService, increment processed on COMPLETED, failed on FAILED_FINAL  
+   - In processors, increment processed on COMPLETED, failed on FAILED_FINAL  
    - Update batch status to COMPLETED when processed + failed == total  
-   - File: `workers.service.ts` or `batch.service.ts`
+   - Files: processors call BatchService
 
 9. **Create RecoveryModule and RecoveryWorker**  
    - Create `src/recovery/recovery.module.ts`  
-   - Create `src/recovery/recovery.worker.ts` - periodically re-enqueues stuck transactions  
-   - Query: currentStep != null AND updatedAt is stale  
+   - Create `src/recovery/recovery.worker.ts` - recreates MISSING outbox events (not direct queue publish)  
+   - Query: currentStep != null AND updatedAt is stale AND no outbox event exists  
+   - Creates outbox event → outbox processor picks it up → maintains consistency  
    - Files: `recovery.module.ts`, `recovery.worker.ts`
 
 ## Risk Notes
-- **Outbox delivery**: if outbox event is marked processed but queue job fails, transaction stays PENDING. Solution: Recovery worker re-enqueues.
-- **Duplicate processing**: without processingStartedAt check, duplicates possible. Solution: 60s deduplication guard in each worker.
+- **Outbox delivery**: if outbox event is marked processed but queue job fails, transaction stays PENDING. Solution: Recovery worker recreates outbox event.
+- **Duplicate processing**: without processingStartedAt check, duplicates possible. Solution: 60s deduplication guard in each processor.
 - **Atomicity**: outbox events are created in same DB transaction as transactions, guaranteeing consistency.
+- **Bypassing outbox**: recovery MUST create outbox event, not directly publish to queue — otherwise outbox pattern is broken.
 
 ## Definition of Done
 - [ ] POST /batches creates transactions + outbox events atomically
-- [ ] OutboxReader continuously publishes jobs to queue
-- [ ] VALIDATE worker validates and advances to ENRICH
-- [ ] ENRICH worker enriches and advances to ANALYZE
-- [ ] ANALYZE worker analyzes (using rules, not pre-labeled data) and completes transaction
+- [ ] OutboxProcessor continuously reads events and publishes to queue (ONLY component that writes to queue)
+- [ ] QueueService is low-level transport with no domain knowledge
+- [ ] VALIDATE processor validates and advances to ENRICH
+- [ ] ENRICH processor enriches and advances to ANALYZE
+- [ ] ANALYZE processor analyzes (using rules, not pre-labeled data) and completes transaction
 - [ ] Deduplication works (checks PROCESSING + 60s window)
 - [ ] Batch counters update on transaction completion
 - [ ] Batch status = COMPLETED when processed + failed == total
 - [ ] Retry works with exponential backoff on errors
-- [ ] RecoveryWorker re-enqueues stuck transactions
+- [ ] RecoveryWorker recreates MISSING outbox events (NOT direct queue publish)
+- [ ] ALL paths to queue go through outbox (maintains consistency)
 - [ ] Code compiles and passes linter
 - [ ] All Acceptance Criteria satisfied
