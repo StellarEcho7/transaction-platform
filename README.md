@@ -1,16 +1,29 @@
 # Transaction Platform
 
-# Key idea
-This is not a "transaction service".
-This is: a system that reliably runs data through a sequence of steps and does not lose it in case of failures.
+## Key idea
+This is not just a "transaction service".
 
-# The purpose of the whole system
-The system guarantees that:
-each transaction will be processed
-even if workers crash
-even if the data is partially bad
-even if the load is high
+It is a fault-tolerant processing system that guarantees every piece of data
+will pass through a defined sequence of steps — without being lost,
+even under failures.
 
+## Core principles
+The system ensures that:
+
+- every transaction is eventually processed
+- no step is lost due to crashes or partial failures
+- processing is fully asynchronous and horizontally scalable
+- each step is explicitly controlled via a state machine (status + currentStep)
+- consistency between database and queue is guaranteed via the outbox pattern
+
+## What makes it reliable
+Even if:
+- workers crash mid-processing  
+- queue delivery fails  
+- invalid or partial data is received  
+- the system is under high load  
+
+→ transactions are not lost and will be recovered and continued automatically
 
 
 # Technology stack
@@ -136,27 +149,35 @@ status = COMPLETED
 
 
 
-The system is a web application with a UI in which a user can generate or upload a JSON with transactions, optionally specifying a batch name (optional; if not specified, it is generated automatically). Generation can occur directly in the UI (for example, in Next.js), where the user sets parameters (number of transactions, proportion of invalid data, patterns of suspicious operations, seed for reproducibility), after which a JSON for upload is formed. At the same time, generation is used only for demonstration and testing of the system, and is not part of the real production flow. After submitting the data, the frontend calls the API, with the Next.js layer acting as a BFF/API Gateway (using Auth.js to work with the user), proxying requests to the backend and adding user context. The API creates a batch record in the database (with status PROCESSING, the number of expected transactions, and metadata), then accepts an array of transactions. For each transaction, the provided id is used (or generated on the server), after which each transaction is saved in the database as a separate record with a reference to batchId, initial fields, status = PENDING and currentStep = VALIDATE. At the database level, a uniqueness constraint on id is enforced, which ensures idempotency — duplicates are not created.
+The system is a web application with a UI in which a user can generate or upload a JSON with transactions, optionally specifying a batch name (optional; if not specified, it is generated automatically). Generation can occur directly in the UI (for example, in Next.js), where the user sets parameters (number of transactions, proportion of invalid data, patterns of suspicious operations, seed for reproducibility), after which a JSON for upload is formed. At the same time, generation is used only for demonstration and testing of the system, and is not part of the real production flow. After submitting the data, the frontend calls the API, with the Next.js layer acting as a BFF/API Gateway (using Auth.js to work with the user), proxying requests to the backend and adding user context.
 
-After saving, for each transaction an attempt is made to create a job in the queue (via Redis/BullMQ), after which the API immediately returns a response to the user “batch accepted for processing” with batchId, without waiting for execution.
+The API creates a batch record in the database (with status PROCESSING, the number of expected transactions, and metadata), then accepts an array of transactions. For each transaction, the provided id is used (or generated on the server), after which each transaction is saved in the database as a separate record with a reference to batchId, initial fields, status = PENDING and currentStep = VALIDATE. At the database level, a uniqueness constraint on id is enforced, which ensures idempotency — duplicates are not created.
+
+Within the same database transaction, for each transaction an outbox event is created describing the next processing step (e.g., VALIDATE). This guarantees that both the transaction data and the corresponding processing intent are persisted atomically.
+
+After the transaction is committed, the API immediately returns a response to the user (“batch accepted for processing”) with batchId, without waiting for execution.
+
+A separate background worker continuously reads unprocessed records from the outbox table, publishes corresponding jobs to the queue (via Redis/BullMQ), and marks those outbox records as processed. This decouples database writes from queue operations and ensures reliable delivery of jobs even in case of partial failures.
 
 Then the system operates asynchronously. Workers process transactions, relying on the status and currentStep fields. Before starting processing, the worker sets the transaction to status = PROCESSING and records processingStartedAt.
 
 Processing occurs as a state machine:
 
-At the VALIDATE step, required fields and basic rules are checked. If the check fails, the transaction is moved to status = FAILED or FAILED_FINAL (if the retry limit is exceeded), currentStep = null, and further processing stops. If successful — currentStep changes to ENRICH, status returns to PENDING, and the next job is created.
-At the ENRICH step, computed data is added to the transaction (for example, region). After successful execution, currentStep changes to ANALYZE, status = PENDING, and the next job is created.
+At the VALIDATE step, required fields and basic rules are checked. If the check fails, the transaction is moved to status = FAILED or FAILED_FINAL (if the retry limit is exceeded), currentStep = null, and further processing stops. If successful — currentStep changes to ENRICH, status returns to PENDING, and a new outbox event is created for the next step, which will later be picked up and converted into a job.
+
+At the ENRICH step, computed data is added to the transaction (for example, region). After successful execution, currentStep changes to ANALYZE, status = PENDING, and a new outbox event is created for the next step.
+
 At the ANALYZE step, riskScore is calculated and fraudFlags are formed. At the same time, anomaly detection is based on processing rules, not on data “pre-labeled” by the generator, which makes the analysis independent and realistic. After that, the transaction is moved to status = COMPLETED, currentStep = null.
 
 Each step is executed as a separate job, which allows transactions to be processed independently and in parallel. Re-execution is safe due to idempotency and state checks (status/currentStep).
 
 If an error occurs during step execution, BullMQ automatically performs retry with backoff. If the retry limit is exceeded, the transaction is moved to FAILED_FINAL and is no longer processed.
 
-To ensure reliability, a recovery worker is used, which periodically finds transactions where currentStep != null and updatedAt is outdated, and re-enqueues them. This covers cases where a job was not created or was lost.
+To ensure reliability, a recovery worker is used, which periodically finds transactions where currentStep != null and updatedAt is outdated, and re-enqueues them (by creating corresponding outbox events if necessary). This covers cases where a job was not created or was lost.
 
 As processing progresses, the aggregated state of the batch (processed/failed/total) is updated, which allows the UI to display processing progress. The user can open a batch and see the list of transactions, their current statuses, processing steps, and analysis results.
 
-As a result, the system implements asynchronous, fault-tolerant transaction processing with a clear state machine model (status + currentStep), idempotency, a retry mechanism, and recovery, in which each transaction goes through a fixed lifecycle, and the user can observe progress in real time.
+As a result, the system implements asynchronous, fault-tolerant transaction processing with a clear state machine model (status + currentStep), idempotency, a retry mechanism, and recovery. The outbox pattern guarantees consistency between the database and the queue, ensuring that every persisted transaction will eventually be processed, even in the presence of failures.
 
 
 # Project structure
@@ -168,256 +189,51 @@ transaction-platform
 
 # Full transaction processing flow
 
-0. System entry (Batch ingestion)
-A batch of transactions enters the system (via API or generator).
-Format:
-JSON array or CSV
-each record = one transaction
-At this stage:
-a batchId is created
-each transaction receives a transactionId
-all transactions are saved in the database in RAW state
-
-Additionally:
-for each transaction a queue job is created for the first processing step
-Transaction state:
-status = PENDING
-step = VALIDATE
-
-1. Validate (data validation)
-A worker picks up the job from the queue and validates the transaction.
-Checks:
-required fields (userId, amount, timestamp)
-data types
-amount > 0
-valid date format
-Result:
-
-If valid:
-status is updated:
-status = VALIDATED
-step = ENRICH
-a new queue job is created (next step)
-
-If invalid:
-status:
-status = FAILED
-error = VALIDATION_ERROR
-no further processing is performed
-
-2. Enrich (data enrichment)
-A worker processes the job and adds computed fields to the transaction.
-Added data:
-region (e.g. based on merchant or userId)
-operationType (purchase / refund)
-simple derived fields
-The transaction is updated in the database.
-State:
-status = ENRICHED
-step = ANALYZE
-Next queue job is created.
-
-3. Analyze (anomaly detection)
-A worker analyzes the transaction.
-Simple rules are applied:
-transaction amount too high
-too frequent operations (per userId)
-suspicious merchant
-Result:
-riskScore is calculated
-flags are generated
-Example:
-```
-{
-  "riskScore": 0.9,
-  "flags": ["HIGH_AMOUNT"]
-}
-```
-State:
-status = ANALYZED
-step = COMPLETE
-Next job is created.
-
-4. Complete (finalization)
-Final worker:
-locks in the final state of the transaction
-marks it as completed
-State:
-status = COMPLETED
-At this point the pipeline ends.
-System behavior on failures
-Retry
-If a worker crashes or a step fails:
-job is retried automatically
-retry count is limited (e.g. 3 attempts)
-DLQ (Dead Letter Queue)
-If the job keeps failing after retries:
-it is moved to a DLQ
-transaction is marked:
-status = FAILED
-
-Idempotency
-If a job runs twice (e.g. due to crash recovery):
-execution is safe
-updates are guarded by transactionId
-
-Concurrent processing
-each transaction is processed independently
-multiple workers can run in parallel
-workers pull jobs from the same queue
-
-Data persistence
-Transaction is stored:
-
-1. On ingestion (RAW)
-original input data
-
-2. After each step
-status updates
-new derived fields added
-
-3. At the end
-final state
-analysis result
-
-Final lifecycle
-
-PENDING → VALIDATED → ENRICHED → ANALYZED → COMPLETED
-	            ↓
-            FAILED (at any stage)
-
-
-
-
-WORKER_CONCURRENCY=10
-WORKER_COUNT=2
-
-Reminder: the cases you handle
-
-to ensure two workers do not take the same task
-to ensure the task is not lost
-to ensure that if a worker dies — the task is restored
-to ensure there are no duplicate executions
-
-1. save to DB (status = pending)
-
-2. worker:
-   - atomically takes the task (and marks it processing)
-   - processes it
-   - sets status = done
-
-3. separate process:
-   - returns stuck processing tasks → pending
-
-
-
-💥 1. Database (minimum)
-
-id
-status: PENDING | PROCESSING | COMPLETED | FAILED
-currentStep: VALIDATE | ENRICH | ANALYZE | null
-updated_at
-processing_started_at (nullable)
-
-💥 2. API
-
-save transaction:
-status = PENDING
-currentStep = VALIDATE
-try to enqueue job (best effort)
-return 200
-
-💥 3. Queue
-
-Redis + BullMQ
-
-queue.add("process-transaction", { transactionId }, {
-  jobId: transactionId,
-  attempts: 5,
-  backoff: { type: "exponential", delay: 2000 }
-});
-
-💥 4. Worker
-
-const tx = getTransaction(id);
-
-if (!tx || tx.currentStep === null) return;
-
-// protection against duplicates
-if (tx.status === "PROCESSING" &&
-    tx.processing_started_at > now() - 60s) return;
-
-update:
-  status = PROCESSING
-  processing_started_at = now()
-
-switch (tx.currentStep):
-
-  VALIDATE:
-    → validate
-    → update:
-        currentStep = ENRICH
-        status = PENDING
-
-    → enqueue next job
-    break;
-
-  ENRICH:
-    → enrich
-    → update:
-        currentStep = ANALYZE
-        status = PENDING
-
-    → enqueue next job
-    break;
-
-  ANALYZE:
-    → analyze
-    → update:
-        currentStep = null
-        status = COMPLETED
-    break;
-
-💥 5. Recovery worker (single)
-
-every N seconds:
-
-SELECT * FROM transactions
-WHERE currentStep IS NOT NULL
-AND updated_at < now() - interval '30 seconds'
-
-for each:
-
-queue.add("process-transaction", { transactionId }, {
-  jobId: transactionId
-});
-
-💥 6. What is covered
-
-enqueue didn’t happen → recovery fixes it
-worker crashed → BullMQ retry
-step stuck → recovery restarts it
-duplicates → jobId + worker checks
-
-💥 7. Core rule
-
-DB = source of truth (currentStep)
-Redis = transport
-Worker = moves steps
-Recovery = fixes gaps
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+1. **Ingestion**
+   - User submits a batch of transactions via API
+   - The system creates:
+     - batch record (PROCESSING)
+     - transaction records (PENDING, currentStep = VALIDATE)
+     - outbox events for the first step (VALIDATE)
+   - All operations are executed atomically in a single database transaction
+
+2. **Outbox delivery**
+   - A background worker continuously reads unprocessed outbox events
+   - Each event is converted into a queue job
+   - Events are marked as processed only after successful delivery
+
+3. **Step execution (state machine)**
+
+   Each transaction is processed independently through a fixed sequence of steps:
+
+   **VALIDATE → ENRICH → ANALYZE**
+
+   For each step:
+   - Worker picks up a job from the queue
+   - Atomically claims the transaction (status = PROCESSING)
+   - Executes the step logic
+
+   **On success:**
+   - transaction state is updated (next step)
+   - a new outbox event is created for the next step
+
+   **On failure:**
+   - automatic retry is triggered (with backoff)
+   - if retry limit is exceeded → transaction marked as FAILED_FINAL
+
+4. **Completion**
+   - After ANALYZE step:
+     - transaction → COMPLETED
+     - currentStep → null
+
+5. **Recovery guarantees**
+   - If a job is not delivered → it remains in outbox and will be retried
+   - If a worker crashes → transaction remains in a recoverable state
+   - A recovery worker periodically re-enqueues stuck transactions
+
+6. **Observability**
+   - Batch progress is aggregated (processed / failed / total)
+   - Each transaction exposes:
+     - current status
+     - current step
+     - processing results
