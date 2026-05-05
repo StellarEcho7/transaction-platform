@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
-import { OutboxService } from '../outbox/outbox.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { BatchResponseDto } from './dto/batch-response.dto';
 import { BatchStatus } from './constants/batch-status';
@@ -10,16 +9,15 @@ import {
   TransactionStatus,
   OutboxEventStatus,
 } from '../transaction/constants';
+import { createId } from '@paralleldrive/cuid2';
 
 @Injectable()
 export class BatchService {
-  constructor(
-    private prisma: PrismaService,
-    private outboxService: OutboxService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(createBatchDto: CreateBatchDto): Promise<BatchResponseDto> {
     const batchName = createBatchDto.batchName || this.generateBatchName();
+    const transactionIds = createBatchDto.transactions.map(() => createId());
 
     const batch = await this.prisma.$transaction(async (tx) => {
       const batch = await tx.batch.create({
@@ -32,9 +30,10 @@ export class BatchService {
         },
       });
 
-      const transactions = await tx.transaction.createManyAndReturn({
-        data: createBatchDto.transactions.map((t) => ({
-          transactionId: t.transactionId || undefined,
+      await tx.transaction.createMany({
+        data: createBatchDto.transactions.map((t, index) => ({
+          id: transactionIds[index],
+          transactionId: t.transactionId || null,
           userId: t.userId,
           amount: t.amount,
           currency: t.currency,
@@ -48,8 +47,8 @@ export class BatchService {
       });
 
       await tx.outboxEvent.createMany({
-        data: transactions.map((tx) => ({
-          transactionId: tx.id,
+        data: transactionIds.map((id) => ({
+          transactionId: id,
           step: TransactionStep.VALIDATE,
           status: OutboxEventStatus.PENDING,
         })),
