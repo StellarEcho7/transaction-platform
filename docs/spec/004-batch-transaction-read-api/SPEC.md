@@ -1,62 +1,61 @@
-# Feature Plan: Read API Endpoints for Batches and Transactions
+# Feature Plan: Batch Transaction Read API
 
 ## 1. Summary
 
-Добавить в transaction-service REST API эндпоинты для чтения данных:
-- GET /batches — список всех батчей
-- GET /batches/:id — детали батча с прогрессом
-- GET /batches/:id/transactions — транзакции конкретного батча
-- GET /transactions/:id — конкретная транзакция
+Add REST API endpoints to transaction-service for reading batch and transaction data:
+- GET /batches — list all batches
+- GET /batches/:id — batch details with progress
+- GET /batches/:id/transactions — transactions for a batch
+- GET /transactions/:id — single transaction by ID
 
 ## 2. User Story
 
-**Кто**: Frontend разработчик / UI приложение
-**Что**: Нужны API endpoints для получения данных о батчах и транзакциях
-**Почему**: UI должен отображать прогресс обработки и список транзакций (README строка 178)
+**Who**: Frontend developer / UI application
+**What**: Need API endpoints to fetch batch and transaction data
+**Why**: UI must display processing progress and transaction lists (README line 178)
 
 ## 3. Acceptance Criteria
 
-- [ ] GET /batches возвращает массив всех батчей с полями: id, name, status, total, processed, failed, createdAt
-- [ ] GET /batches/:id возвращает батч с транзакциями (пагинированными)
-- [ ] GET /batches/:id/transactions возвращает массив транзакций батча с фильтрацией по status
-- [ ] GET /transactions/:id возвращает полную информацию о транзакции
-- [ ] Поддержка query params: page, limit для пагинации; status для фильтрации
+- [ ] GET /batches returns array of all batches with fields: id, name, status, total, processed, failed, createdAt
+- [ ] GET /batches/:id returns batch with transactions (paginated)
+- [ ] GET /batches/:id/transactions returns array of batch transactions with status filter
+- [ ] GET /transactions/:id returns full transaction information
+- [ ] Support query params: page, limit for pagination; status for filtering
 
 ## 4. Scope (MVP / Out of scope)
 
 **MVP**:
-- Все 4 GET эндпоинта
-- Пагинация (page, limit)
-- Фильтрация по status
+- All 4 GET endpoints
+- Pagination (page, limit)
+- Filtering by status
 
 **Out of scope**:
-- POST/PUT/DELETE (только чтение)
-- Сортировка, расширенная фильтрация
+- POST/PUT/DELETE (read-only)
+- Sorting, advanced filtering
 
 ## 5. Technical Plan
 
-### BatchController — новые эндпоинты
-- `GET /batches` — найти все батчи
-- `GET /batches/:id` — батч с транзакциями
-- `GET /batches/:id/transactions` — транзакции батча
+### BatchController — add endpoints
+- `GET /batches` — find all batches
+- `GET /batches/:id` — batch with transactions
+- `GET /batches/:id/transactions` — batch transactions
 
-### BatchService — расширить
-- `findAll(query)` — пагинированный список батчей
-- `findById(id)` — батч с транзакциями
+### BatchService — add methods
+- `findAll(query)` — paginated list of batches
+- `findById(id)` — batch with transactions
 
-### TransactionController — создать
-- `GET /transactions/:id` — транзакция по ID
+### TransactionController — create new controller
+- `GET /transactions/:id` — transaction by ID
 
-### TransactionService — расширить
-- `findById(id)` — найти транзакцию
-- `findByBatchId(batchId, query)` — транзакции батча
+### TransactionService — add methods
+- `findById(id)` — get transaction by ID
+- `findByBatchId(batchId, query)` — paginated transactions for batch
 
-### DTOs
+### DTOs to create
 - `BatchListQueryDto` (page, limit, status)
-- `BatchDetailDto` (включает transactions)
+- `BatchDetailDto` (includes transactions)
 - `TransactionListQueryDto` (page, limit, status)
-- `TransactionResponseDto`
-- `PaginationResponseDto`
+- `TransactionDetailDto`
 
 ## 6. Contracts
 
@@ -84,9 +83,9 @@
 
 ## 7. Tasks
 
-1. **Add DTOs** — BatchListQueryDto, TransactionListQueryDto, PaginationResponseDto, BatchDetailDto, TransactionResponseDto
-2. **Extend BatchService** — findAll(), findById() с пагинацией
-3. **Extend TransactionService** — findById(), findByBatchId()
+1. **Add DTOs** — BatchListQueryDto, TransactionListQueryDto, PaginationResponseDto, BatchDetailDto, TransactionDetailDto
+2. **Extend BatchService** — findAll(query), findById(id)
+3. **Extend TransactionService** — findById(id), findByBatchId(batchId, query)
 4. **Add BatchController endpoints** — GET /batches, /batches/:id, /batches/:id/transactions
 5. **Create TransactionController** — GET /transactions/:id
 6. **Run quality-gate** — build, lint, typecheck
