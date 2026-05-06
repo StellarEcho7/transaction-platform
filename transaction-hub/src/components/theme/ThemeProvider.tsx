@@ -1,7 +1,6 @@
 "use client";
 
-import { ThemeProvider as MuiThemeProvider } from "@mui/material";
-import { createTheme } from "@mui/material/styles";
+import { ThemeProvider as MuiThemeProvider, createTheme, CssBaseline } from "@mui/material";
 
 const lightTheme = createTheme({
   palette: {
@@ -12,5 +11,10 @@ const lightTheme = createTheme({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  return <MuiThemeProvider theme={lightTheme}>{children}</MuiThemeProvider>;
+  return (
+    <MuiThemeProvider theme={lightTheme}>
+      <CssBaseline />
+      {children}
+    </MuiThemeProvider>
+  );
 }
