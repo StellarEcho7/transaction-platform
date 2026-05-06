@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { Avatar, Box, Button, Menu, MenuItem } from "@mui/material";
+import { useSession, signOut } from "next-auth/react";
+import { Avatar, Box, IconButton, Menu, MenuItem } from "@mui/material";
 import { useState } from "react";
-import LogoutButton from "../LogoutButton";
 
 export default function UserMenu() {
   const { data: session, status } = useSession();
@@ -26,22 +25,29 @@ export default function UserMenu() {
   const userName = session?.user?.name || session?.user?.email || "User";
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-      <Button
-        onClick={handleClick}
-        sx={{ textTransform: "none" }}
-        startIcon={
-          <Avatar sx={{ width: 32, height: 32 }}>{userName[0]}</Avatar>
-        }
+    <Box sx={{ display: "flex", alignItems: "center" }}>
+      <IconButton onClick={handleClick} sx={{ p: 0.5 }}>
+        <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.main" }}>
+          {userName[0].toUpperCase()}
+        </Avatar>
+      </IconButton>
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        {userName}
-      </Button>
-      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        <MenuItem component={Link} href="/profile" onClick={handleClose}>
+        <MenuItem
+          component={Link}
+          href="/profile"
+          onClick={handleClose}
+          sx={{ minWidth: 120 }}
+        >
           Profile
         </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <LogoutButton />
+        <MenuItem onClick={() => { handleClose(); signOut({ callbackUrl: "/login" }); }}>
+          Logout
         </MenuItem>
       </Menu>
     </Box>
