@@ -1,7 +1,7 @@
 # Feature Plan: Generate Transactions Page
 
 ## 1. Summary
-Add a functional Generate page to transaction-hub that allows users to create test transaction data with configurable parameters (count, invalid %, dangerous %, seed). The generated JSON can be downloaded or sent directly to the backend API for processing.
+Add a functional Generate page to transaction-hub that allows users to create test transaction data with configurable parameters (count, invalid %, dangerous %, seed). The generated JSON can only be downloaded as a file.
 
 ---
 
@@ -22,7 +22,6 @@ Add a functional Generate page to transaction-hub that allows users to create te
 5. Clicking "Generate" creates a JSON array of transactions matching the parameters
 6. Generated transactions include valid `transactionId` (UUID) for each
 7. User can download the generated JSON as a file
-8. User can submit the generated transactions directly to the batch API
 
 ### Validation Criteria
 - Invalid transactions fail at VALIDATE step (missing required fields, invalid amount, etc.)
@@ -43,10 +42,10 @@ Add a functional Generate page to transaction-hub that allows users to create te
 - Client-side transaction generator function (seeded PRNG)
 - JSON preview display
 - Download as file functionality
-- Submit to batch API functionality
 
 ### Out of Scope
 - Upload existing JSON file (covered by Upload page)
+- Submit to API (functionality moved to Upload page)
 - Complex fraud pattern configuration beyond simple percentages
 - Server-side generation (generation is for demo/testing only per README)
 
