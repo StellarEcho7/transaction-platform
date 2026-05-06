@@ -3,9 +3,25 @@ import UserMenu from "../UserMenu";
 
 export default function Header() {
   return (
-    <AppBar position="sticky" color="default" elevation={1}>
+    <AppBar
+      position="sticky"
+      color="default"
+      elevation={0}
+      sx={{ borderBottom: 1, borderColor: "divider" }}
+    >
       <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+        <Typography
+          variant="h5"
+          component="h1"
+          sx={{
+            flexGrow: 1,
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            background: "linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
           Transaction Platform
         </Typography>
         <UserMenu />
