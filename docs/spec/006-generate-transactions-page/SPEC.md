@@ -29,16 +29,16 @@ Add a functional Generate page to transaction-hub that allows users to create te
 - Total invalid + dangerous percentages cannot exceed 100%
 
 ### UI Criteria
-- Page displays a form with title, description, and input fields
+- Page displays title, description, and all input components inline (not inside a form element)
 - Page displays a "Generate" button
-- After generation, page shows preview of generated data and action buttons
+- After generation, page shows preview of generated data and download button
 
 ---
 
 ## 4. Scope
 
 ### MVP (In Scope)
-- Form UI with all required inputs
+- Inline UI with all required inputs (no form element)
 - Client-side transaction generator function (seeded PRNG)
 - JSON preview display
 - Download as file functionality
@@ -53,33 +53,28 @@ Add a functional Generate page to transaction-hub that allows users to create te
 
 ## 5. Technical Plan
 
-### Frontend Files to Create/Modify
-
-**New Files:**
-1. `src/lib/generate-transactions.ts` - Transaction generator utility
-   - `generateTransactions(params: GenerateParams): Transaction[]`
-   - Types: `GenerateParams`, `TransactionInput`
-
-2. `src/components/TransactionGenerator/TransactionGenerator.tsx` - Generator form component
-3. `src/components/TransactionGenerator/index.ts` - Barrel export
+### Frontend Files to Modify
 
 **Modify Files:**
-1. `app/(app)/generate/page.tsx` - Update to use generator component
+1. `app/(app)/generate/page.tsx` - Implement full generation UI inline
+   - Add state for: count, invalidPercent, dangerousPercent, seed, generatedData
+   - Add NumberField, TextField, Button components
+   - Add generateTransactions() call
+   - Add JSON preview display
+   - Add download functionality
 
-### Component Structure
+No new component files required - implement directly in page.
 ```
-TransactionGenerator
+GeneratePage
 ├── Title (Typography)
 ├── Description (Typography)  
-├── Form (Stack)
-│   ├── Number of transactions (NumberField)
-│   ├── Invalid % (NumberField/Slider)
-│   ├── Dangerous % (NumberField/Slider)
-│   ├── Seed (TextField, optional)
-│   └── Generate (Button)
-├── Preview (Box/Copy)
-│   └── Generated JSON preview (scrollable, max N items)
-└── Actions (Stack)
+├── Number of transactions (NumberField)
+├── Invalid % (NumberField)
+├── Dangerous % (NumberField)
+├── Seed (TextField, optional)
+├── Generate (Button)
+└── Preview & Download (Box)
+    ├── Generated JSON preview (scrollable, max 10 items)
     └── Download JSON (Button)
 ```
 
@@ -119,21 +114,17 @@ interface TransactionInput {
 
 **Files:** `src/lib/generate-transactions.ts`
 
-### Task 2: Create TransactionGenerator Component
-- Create form with all input fields
-- Implement validation (invalid + dangerous <= 100%)
-- Handle generate button click
-- Display JSON preview (limited to first 10 items)
-- Implement download functionality
-
-**Files:** `src/components/TransactionGenerator/TransactionGenerator.tsx`, `src/components/TransactionGenerator/index.ts`
-
-### Task 3: Update Generate Page
-- Replace placeholder with TransactionGenerator component
+### Task 2: Update Generate Page
+- Implement full generation UI inline in page.tsx
+- Add state for: count, invalidPercent, dangerousPercent, seed, generatedData
+- Add input components (NumberField, TextField)
+- Add generate button and handler
+- Add JSON preview display (limited to 10 items)
+- Add download functionality
 
 **Files:** `app/(app)/generate/page.tsx`
 
-### Task 4: Run Quality Gate
+### Task 3: Run Quality Gate
 - Run build/lint/typecheck
 - Fix any errors
 
