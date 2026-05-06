@@ -88,15 +88,15 @@ export default function GeneratePage() {
           <Paper
             elevation={0}
             sx={{
-              p: 3,
+              p: 3.5,
               border: "1px solid",
               borderColor: "divider",
             }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+            <Typography variant="h4" sx={{ fontWeight: 600, mb: 1.5 }}>
               Generate Transactions
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               Generate synthetic transaction data for testing the transaction
               processing system.
             </Typography>
@@ -117,7 +117,6 @@ export default function GeneratePage() {
                 onChange={(e) => setCount(Number(e.target.value))}
                 slotProps={{ htmlInput: { min: 1, max: 10000 } }}
                 fullWidth
-                size="small"
                 helperText="Range: 1 - 10000"
               />
               <TextField
@@ -127,7 +126,6 @@ export default function GeneratePage() {
                 onChange={(e) => setInvalidPercent(Number(e.target.value))}
                 slotProps={{ htmlInput: { min: 0, max: 100 } }}
                 fullWidth
-                size="small"
                 helperText="Transactions that will fail validation"
               />
               <TextField
@@ -137,7 +135,6 @@ export default function GeneratePage() {
                 onChange={(e) => setDangerousPercent(Number(e.target.value))}
                 slotProps={{ htmlInput: { min: 0, max: 100 } }}
                 fullWidth
-                size="small"
                 helperText="Transactions with high risk score"
               />
               <TextField
@@ -147,7 +144,6 @@ export default function GeneratePage() {
                 onChange={(e) => setSeed(e.target.value)}
                 placeholder="For reproducibility"
                 fullWidth
-                size="small"
                 helperText="Leave empty for random results"
               />
               <Box sx={{ mt: 1 }}>
@@ -174,7 +170,7 @@ export default function GeneratePage() {
           <Paper
             elevation={0}
             sx={{
-              p: 3,
+              p: 3.5,
               height: "100%",
               minHeight: 500,
               border: "1px solid",
@@ -189,7 +185,7 @@ export default function GeneratePage() {
                 mb: 2,
               }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 500 }}>
+              <Typography variant="h5" sx={{ fontWeight: 500 }}>
                 {generatedData
                   ? `Preview (${generatedData.length} transactions)`
                   : "Preview"}
@@ -210,12 +206,12 @@ export default function GeneratePage() {
                 <Box
                   component="pre"
                   sx={{
-                    maxHeight: 450,
+                    maxHeight: 380,
                     overflow: "auto",
                     bgcolor: "grey.50",
-                    p: 2,
+                    p: 2.5,
                     borderRadius: 1,
-                    fontSize: "0.7rem",
+                    fontSize: "0.8rem",
                     fontFamily: "monospace",
                     border: "1px solid",
                     borderColor: "divider",
@@ -224,7 +220,7 @@ export default function GeneratePage() {
                   {JSON.stringify(generatedData.slice(0, 10), null, 2)}
                   {generatedData.length > 10 && (
                     <Typography
-                      variant="caption"
+                      variant="body2"
                       sx={{
                         display: "block",
                         mt: 1.5,
@@ -243,14 +239,14 @@ export default function GeneratePage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  height: "90%",
+                  height: 200,
                   bgcolor: "grey.50",
                   borderRadius: 1,
                   border: "1px dashed",
                   borderColor: "divider",
                 }}
               >
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body1" color="text.secondary">
                   Click Generate to create transactions and see preview here
                 </Typography>
               </Box>
