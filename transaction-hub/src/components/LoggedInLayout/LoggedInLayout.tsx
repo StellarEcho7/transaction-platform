@@ -8,11 +8,13 @@ interface LoggedInLayoutProps {
 
 export default function LoggedInLayout({ children }: LoggedInLayoutProps) {
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Header />
-      <Sidebar />
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        {children}
+      <Box sx={{ display: "flex", flexGrow: 1 }}>
+        <Sidebar />
+        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+          {children}
+        </Box>
       </Box>
     </Box>
   );
