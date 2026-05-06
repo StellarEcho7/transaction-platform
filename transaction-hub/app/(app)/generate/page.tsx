@@ -77,8 +77,14 @@ export default function GeneratePage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", gap: 4 }}>
-        <Box sx={{ width: 500, flexShrink: 0 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 3,
+          flexDirection: { xs: "column", lg: "row" },
+        }}
+      >
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           <Paper
             elevation={0}
             sx={{
@@ -87,17 +93,10 @@ export default function GeneratePage() {
               borderColor: "divider",
             }}
           >
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: 600, mb: 1 }}
-            >
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
               Generate Transactions
             </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mb: 3 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Generate synthetic transaction data for testing the transaction
               processing system.
             </Typography>
