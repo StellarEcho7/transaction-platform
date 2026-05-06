@@ -77,7 +77,7 @@ export default function GeneratePage() {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", gap: 4 }}>
-        <Box sx={{ width: 400, flexShrink: 0 }}>
+        <Box sx={{ width: 500, flexShrink: 0 }}>
           <Box
             sx={{
               display: "flex",
