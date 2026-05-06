@@ -8,6 +8,7 @@ import {
   Box,
   Paper,
   Alert,
+  Divider,
 } from "@mui/material";
 import {
   generateTransactions,
@@ -78,106 +79,182 @@ export default function GeneratePage() {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", gap: 4 }}>
         <Box sx={{ width: 500, flexShrink: 0 }}>
-          <Box
+          <Paper
+            elevation={0}
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
+              p: 3,
+              border: "1px solid",
+              borderColor: "divider",
             }}
           >
-            <Typography variant="h4">Generate Transactions</Typography>
-            <Typography variant="body1" sx={{ mb: 4 }}>
-              Generate synthetic transaction data for testing the transaction
-              processing system. Configure the parameters below and click
-              Generate to create a JSON file.
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 600, mb: 1 }}
+            >
+              Generate Transactions
             </Typography>
-            <TextField
-              label="Number of transactions"
-              type="number"
-              value={count}
-              onChange={(e) => setCount(Number(e.target.value))}
-              slotProps={{ htmlInput: { min: 1, max: 10000 } }}
-              fullWidth
-            />
-            <TextField
-              label="Invalid %"
-              type="number"
-              value={invalidPercent}
-              onChange={(e) => setInvalidPercent(Number(e.target.value))}
-              slotProps={{ htmlInput: { min: 0, max: 100 } }}
-              fullWidth
-            />
-            <TextField
-              label="Dangerous %"
-              type="number"
-              value={dangerousPercent}
-              onChange={(e) => setDangerousPercent(Number(e.target.value))}
-              slotProps={{ htmlInput: { min: 0, max: 100 } }}
-              fullWidth
-            />
-            <TextField
-              label="Seed (optional)"
-              type="number"
-              value={seed}
-              onChange={(e) => setSeed(e.target.value)}
-              placeholder="For reproducibility"
-              fullWidth
-            />
-            <Box>
-              <Button variant="contained" onClick={handleGenerate}>
-                Generate
-              </Button>
-            </Box>
-          </Box>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mb: 3 }}
+            >
+              Generate synthetic transaction data for testing the transaction
+              processing system.
+            </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
-            </Alert>
-          )}
+            <Divider sx={{ mb: 3 }} />
+
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2.5,
+              }}
+            >
+              <TextField
+                label="Number of transactions"
+                type="number"
+                value={count}
+                onChange={(e) => setCount(Number(e.target.value))}
+                slotProps={{ htmlInput: { min: 1, max: 10000 } }}
+                fullWidth
+                size="small"
+                helperText="Range: 1 - 10000"
+              />
+              <TextField
+                label="Invalid %"
+                type="number"
+                value={invalidPercent}
+                onChange={(e) => setInvalidPercent(Number(e.target.value))}
+                slotProps={{ htmlInput: { min: 0, max: 100 } }}
+                fullWidth
+                size="small"
+                helperText="Transactions that will fail validation"
+              />
+              <TextField
+                label="Dangerous %"
+                type="number"
+                value={dangerousPercent}
+                onChange={(e) => setDangerousPercent(Number(e.target.value))}
+                slotProps={{ htmlInput: { min: 0, max: 100 } }}
+                fullWidth
+                size="small"
+                helperText="Transactions with high risk score"
+              />
+              <TextField
+                label="Seed (optional)"
+                type="number"
+                value={seed}
+                onChange={(e) => setSeed(e.target.value)}
+                placeholder="For reproducibility"
+                fullWidth
+                size="small"
+                helperText="Leave empty for random results"
+              />
+              <Box sx={{ mt: 1 }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={handleGenerate}
+                  sx={{ minWidth: 140 }}
+                >
+                  Generate
+                </Button>
+              </Box>
+            </Box>
+
+            {error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
+          </Paper>
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Paper sx={{ p: 2, height: "100%", minHeight: 500 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              {generatedData
-                ? `Preview (${generatedData.length} transactions)`
-                : "Preview"}
-            </Typography>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              height: "100%",
+              minHeight: 500,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                {generatedData
+                  ? `Preview (${generatedData.length} transactions)`
+                  : "Preview"}
+              </Typography>
+              {generatedData && (
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  onClick={handleDownload}
+                >
+                  Download JSON
+                </Button>
+              )}
+            </Box>
             {generatedData ? (
               <>
                 <Box
                   component="pre"
                   sx={{
-                    maxHeight: 400,
+                    maxHeight: 380,
                     overflow: "auto",
-                    bgcolor: "grey.100",
+                    bgcolor: "grey.50",
                     p: 2,
                     borderRadius: 1,
-                    fontSize: "0.75rem",
+                    fontSize: "0.7rem",
+                    fontFamily: "monospace",
+                    border: "1px solid",
+                    borderColor: "divider",
                   }}
                 >
                   {JSON.stringify(generatedData.slice(0, 10), null, 2)}
                   {generatedData.length > 10 && (
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      ... and {generatedData.length - 10} more
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: "block",
+                        mt: 1.5,
+                        color: "text.secondary",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      ... and {generatedData.length - 10} more transactions
                     </Typography>
                   )}
                 </Box>
-                <Box sx={{ mt: 2 }}>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={handleDownload}
-                  >
-                    Download JSON
-                  </Button>
-                </Box>
               </>
             ) : (
-              <Typography variant="body2" color="text.secondary">
-                Click Generate to create transactions and see preview here
-              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: 200,
+                  bgcolor: "grey.50",
+                  borderRadius: 1,
+                  border: "1px dashed",
+                  borderColor: "divider",
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Click Generate to create transactions and see preview here
+                </Typography>
+              </Box>
             )}
           </Paper>
         </Box>
