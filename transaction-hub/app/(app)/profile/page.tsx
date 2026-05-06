@@ -12,12 +12,12 @@ export default function ProfilePage() {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: "grey.50",
+        py: 4,
+        bgcolor: "background.default",
       }}
     >
       <Box
@@ -25,7 +25,7 @@ export default function ProfilePage() {
           maxWidth: 600,
           width: "100%",
           p: 4,
-          bgcolor: "white",
+          bgcolor: "background.paper",
           borderRadius: 2,
           boxShadow: 3,
         }}
