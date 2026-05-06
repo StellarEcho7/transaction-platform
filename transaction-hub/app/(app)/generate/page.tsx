@@ -206,7 +206,7 @@ export default function GeneratePage() {
                 <Box
                   component="pre"
                   sx={{
-                    maxHeight: 380,
+                    maxHeight: 525,
                     overflow: "auto",
                     bgcolor: "grey.50",
                     p: 2.5,
