@@ -66,10 +66,6 @@ Add a functional Generate page to transaction-hub that allows users to create te
 **Modify Files:**
 1. `app/(app)/generate/page.tsx` - Update to use generator component
 
-### API Integration
-- Use existing batch API: `POST /api/batches` (to be created in Next.js as BFF)
-- Request body matches backend `CreateBatchDto`
-
 ### Component Structure
 ```
 TransactionGenerator
@@ -81,11 +77,10 @@ TransactionGenerator
 │   ├── Dangerous % (NumberField/Slider)
 │   ├── Seed (TextField, optional)
 │   └── Generate (Button)
-├── Preview (JSON display - Collapse/Accordion)
-│   └── Generated JSON preview
+├── Preview (Box/Copy)
+│   └── Generated JSON preview (scrollable, max N items)
 └── Actions (Stack)
-    ├── Download JSON (Button)
-    └── Submit to API (Button)
+    └── Download JSON (Button)
 ```
 
 ---
@@ -112,30 +107,6 @@ interface TransactionInput {
 }
 ```
 
-### Submit to API Contract
-```
-POST /api/batches
-Content-Type: application/json
-
-Request:
-{
-  name?: string,              // optional batch name
-  transactions: TransactionInput[]
-}
-
-Response:
-{
-  id: string,
-  name: string,
-  status: "PROCESSING",
-  total: number,
-  processed: number,
-  failed: number,
-  createdAt: string,
-  updatedAt: string
-}
-```
-
 ---
 
 ## 7. Tasks
@@ -152,8 +123,8 @@ Response:
 - Create form with all input fields
 - Implement validation (invalid + dangerous <= 100%)
 - Handle generate button click
-- Display JSON preview
-- Implement download and submit functionality
+- Display JSON preview (limited to first 10 items)
+- Implement download functionality
 
 **Files:** `src/components/TransactionGenerator/TransactionGenerator.tsx`, `src/components/TransactionGenerator/index.ts`
 
@@ -162,13 +133,7 @@ Response:
 
 **Files:** `app/(app)/generate/page.tsx`
 
-### Task 4: Create Batch API Route (Next.js BFF)
-- Create API route handler for batch creation
-- Proxy request to backend service
-
-**Files:** `app/api/batches/route.ts`
-
-### Task 5: Run Quality Gate
+### Task 4: Run Quality Gate
 - Run build/lint/typecheck
 - Fix any errors
 
@@ -177,12 +142,12 @@ Response:
 ## 8. Risk Notes
 
 ### Identified Risks
-1. **API Integration Risk**: Need to verify backend batch endpoint exists and matches expected contract - will create Next.js BFF route to proxy if needed
-2. **JSON Preview Performance**: Large transaction counts (10000) may cause UI lag - consider limiting preview to first N items
+1. **JSON Preview Performance**: Large transaction counts (10000) may cause UI lag - limit preview to first N items
 
 ### Mitigations
 - Preview shows only first 10 transactions with "... and X more" indicator
-- Use virtualization for large lists if needed
+
+No significant risks identified
 
 ---
 
@@ -199,7 +164,6 @@ Response:
 - [ ] Invalid transactions have missing/invalid required fields
 - [ ] Dangerous transactions have high amounts or suspicious patterns
 - [ ] Download button exports JSON file
-- [ ] Submit button sends to API and shows success/error
 - [ ] Form validation prevents invalid + dangerous > 100%
 - [ ] No TypeScript/lint errors
 
@@ -209,4 +173,3 @@ Response:
 3. Generate 10 transactions with 30% dangerous → ~3 dangerous transactions
 4. Same seed + same params → identical output (reproducibility)
 5. Download produces valid JSON file
-6. Submit to API creates batch and returns batchId
