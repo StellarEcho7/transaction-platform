@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import AccountView from "@/src/components/AccountView";
+import AccountView from "./AccountView";
 
 export default function AccountPage() {
   const { data: session } = useSession();
