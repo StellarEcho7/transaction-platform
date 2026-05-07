@@ -4,7 +4,24 @@
 ```
 transaction-platform/
   transaction-hub/       # Next.js app + MUI UI + tailwindcss + next-auth + Prisma
+    src/
+      app/                 # App Router pages
+        (app)/             # Protected routes (account, batches, generate, profile, upload)
+        (auth)/            # Auth routes (login, register)
+        api/               # API routes (auth)
+      components/          # UI components (Button, TextField, Select, etc.)
+      lib/                 # Utilities
+      stories/             # Storybook stories
   transaction-service/   # NestJS backend, Prisma, BullMQ workers
+    src/
+      batch/              # Batch feature module
+      outbox/             # Outbox pattern module
+      prisma/             # Prisma service
+      queue/              # Queue service
+      recovery/           # Recovery worker
+      shared/             # Shared constants
+      transaction/        # Transaction feature module
+      workers/            # BullMQ processors (validate, enrich, analyze)
 ```
 
 ## Tech stack
