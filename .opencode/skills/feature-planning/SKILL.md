@@ -1,68 +1,172 @@
 ---
 name: feature-planning
-description: Comprehensive feature planning and breakdown for systematic development
+description: Create concise, execution-ready feature specs for LLM-driven implementation with strict scope control and codebase awareness
 license: MIT
 compatibility: opencode
-metadata:
-  audience: product-managers, developers, tech-leads
-  workflow: planning, development
-  domains:
-    - architecture
-    - requirements
-    - estimation
-    - project-management
 ---
 
-## When to use me
+## When to use
+- Plan a feature for direct LLM execution
+- Break down feature into safe, incremental changes
+- Align work with existing codebase structure
 
-- Plan new features from conception to implementation roadmap
-- Break down epics into actionable stories (2-8h tasks max)
-- Identify scope, dependencies, and complexity
-- Design architecture for backend, frontend, database changes
+---
 
 ## Planning Process
 
+### 0. Context Awareness (REQUIRED)
+- Existing related modules/files (if any)
+- Current architecture constraints
+- Reuse over creation rule:
+  → prefer modifying existing code over introducing new layers
+
+If no context is available, explicitly state:
+> "Assuming no prior implementation exists"
+
+---
+
 ### 1. Requirements
-- User story (who, what, why)
-- Acceptance criteria (testable conditions)
-- Edge cases and constraints
+- User story (who / what / why)
+- Acceptance Criteria (testable, scenario-based)
+- Explicit non-goals (what NOT to build)
 
-### 2. Scope Definition
-- MVP scope vs Phase 2+ vs out of scope
-- Dependencies and blockers
+Edge cases only if they affect implementation
 
-### 3. Technical Breakdown
-- Backend: endpoints, services, migrations
-- Frontend: components, pages, state
-- Database: schema changes, indexes
-- Infrastructure & integrations
+---
 
-### 4. Task Decomposition
-- Break into 2-8h tasks with dependencies and parallelization plan
+### 2. Scope Control
 
-### 5. Complexity Assessment
-- **Low**: familiar patterns, minimal testing
-- **Medium**: new patterns, moderate integration
-- **High**: novel architecture, complex interactions
+MVP:
+- Minimal working version only
+- Must satisfy Acceptance Criteria
 
-### 6. Implementation & Testing Plan
-- Phase structure, rollout strategy, monitoring
-- Unit → Integration → E2E → Manual test coverage
+Out of scope:
+- Any scalability “future-proofing”
+- Any refactoring not required for feature
+
+Hard rule:
+> If it does not unblock MVP → it is out of scope
+
+---
+
+### 3. Technical Plan (STRICT + IMPLEMENTATION-READY)
+
+Rules:
+- No abstract architecture
+- No unnecessary layers
+- Map directly to existing or new files
+
+Backend:
+- Exact endpoints (method + path)
+- Exact functions/services to modify or create
+- Reuse existing logic where possible
+
+Frontend:
+- Exact components
+- Exact pages/routes
+- State changes if relevant
+
+Database:
+- Schema changes only if required
+- Explicit fields + relations
+
+Infra:
+- Only required env vars from `.env.example`
+- No new env vars without explicit justification
+
+---
+
+### 4. Contracts (MANDATORY)
+
+Define exact API/data boundaries:
+
+Example:
+POST /api/auth/login  
+Request:
+{
+  email: string,
+  password: string
+}
+
+Response:
+{
+  accessToken: string,
+  user: UserDto
+}
+
+Rules:
+- Must match implementation exactly
+- No optional “maybe fields”
+- No ambiguity
+
+---
+
+### 5. Execution Tasks (MAX 5–7)
+
+Rules:
+- Each task = observable change in codebase
+- Each task must be independently testable
+- Order matters (dependency-aware)
+
+Format:
+
+1. Task name  
+   - What exactly changes  
+   - Which files/modules affected  
+
+---
+
+### 6. Risk Notes (REQUIRED)
+
+List only real risks:
+- breaking existing flows
+- data inconsistency
+- integration issues
+
+If none:
+> "No significant risks identified"
+
+---
+
+### 7. Definition of Done (STRICT)
+
+Feature is complete when:
+
+- All endpoints/components exist and work
+- Acceptance Criteria are satisfied exactly
+- No unused abstractions introduced
+- No deviation from Contracts
+- Manual test scenarios are reproducible
+
+---
+
+## Execution Rule
+
+- Execute one task at a time
+- After each task → run `quality-gate`
+- Do not proceed if tests or contract validation fail
+
+---
+
+## Anti-Patterns (FORBIDDEN)
+
+- “Create service layer for future extensibility”
+- “Refactor architecture”
+- “Add abstraction for scalability”
+- Vague tasks like “implement logic”
+- Unused interfaces or DTOs
+- Over-splitting into micro-steps
+
+---
 
 ## Output Format
 
-1. Feature Summary — one-liner and overview
-2. User Story — who, what, why
-3. Acceptance Criteria — testable success conditions
-4. Scope Breakdown — MVP / Phase 2+ / Out of scope
-5. Technical Architecture — backend, frontend, database, infra
-6. Task Breakdown — ordered actionable tasks with dependencies
-7. Complexity Assessment — effort and risk analysis
-8. Testing Plan — coverage goals
-
-## Best Practices
-
-- Keep tasks small (≤ 8h)
-- Define "out of scope" explicitly
-- Map dependencies before planning execution order
-- Consider performance, security, and rollback in testing plan
+1. Summary  
+2. User Story  
+3. Acceptance Criteria  
+4. Scope (MVP / Out of scope)  
+5. Technical Plan  
+6. Contracts  
+7. Tasks (max 5–7)  
+8. Risk Notes  
+9. Definition of Done
