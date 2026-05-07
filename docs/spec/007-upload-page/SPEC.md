@@ -13,9 +13,8 @@ Implement Upload page in transaction-hub for uploading transactions via JSON fil
 ## 3. Acceptance Criteria
 
 - [ ] User can upload a JSON file via drag-and-drop or file picker
-- [ ] User can manually paste/enter JSON data
 - [ ] Uploaded data is validated client-side (valid JSON, required fields)
-- [ ] After upload, user sees batch creation result (batch ID, transaction count)
+- [ ] After upload, user sees batch creation result (batch ID, transaction count, batch name)
 - [ ] Error messages displayed for invalid files or server errors
 - [ ] All requests go through transaction-hub API routes (BFF pattern)
 
@@ -23,7 +22,6 @@ Implement Upload page in transaction-hub for uploading transactions via JSON fil
 
 **MVP:**
 - JSON file upload with drag-and-drop + file picker
-- Manual JSON entry text area
 - Client-side validation
 - Server action to proxy batch creation to transaction-service
 - Success/error feedback UI
@@ -36,7 +34,7 @@ Implement Upload page in transaction-hub for uploading transactions via JSON fil
 ## 5. Technical Plan
 
 **Frontend (transaction-hub):**
-- `src/app/(app)/upload/page.tsx` — main upload page with file drop zone + manual input
+- `src/app/(app)/upload/page.tsx` — main upload page with file drop zone
 - `src/app/api/batches/route.ts` — API route that proxies to transaction-service
 
 **Backend (transaction-service):**
@@ -117,7 +115,7 @@ class TransactionDto {
 2. **Create server action for batch creation** — `src/app/actions/create-batch.ts` — typed wrapper around API route with error handling  
    *Files: new file*
 
-3. **Implement Upload page UI** — `src/app/(app)/upload/page.tsx` — file drop zone, manual input, validation, submission  
+3. **Implement Upload page UI** — `src/app/(app)/upload/page.tsx` — file drop zone, validation, submission  
    *Files: modify existing placeholder*
 
 4. **Add SERVICE_URL to env vars** — `transaction-hub/.env.example` and create `transaction-hub/src/config.ts` for backend URL  
