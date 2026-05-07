@@ -2,7 +2,7 @@
 
 ## 1. Summary
 
-Реализовать страницу Upload в transaction-hub для загрузки транзакций через JSON файл с отправкой в transaction-service через BFF проксирование.
+Implement Upload page in transaction-hub for uploading transactions via JSON file with submission to transaction-service through BFF proxy.
 
 ## 2. User Story
 
@@ -128,8 +128,8 @@ class TransactionDto {
 
 ## 8. Risk Notes
 
-- **BFF-сервис коммуникация**: Нужно добавить SERVICE_URL в конфигурацию. Если не добавить — запросы не дойдут.
-- **Валидация на бэкенде**: transaction-service already validates via DTOs, but client should do basic checks to avoid unnecessary round-trips.
+- **BFF-Service Communication**: Need to add SERVICE_URL to configuration. Without it, requests won't reach the service.
+- **Backend Validation**: transaction-service already validates via DTOs, but client should do basic checks to avoid unnecessary round-trips.
 
 ## 9. Definition of Done
 
