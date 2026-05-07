@@ -2,13 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Box,
-  List,
-  ListItemButton,
-  ListItemText,
-  Typography,
-} from "@mui/material";
+import Box from "../Box";
+import Typography from "../Typography";
+import { List, ListItemButton, ListItemText } from "@mui/material";
 
 interface NavItem {
   label: string;
