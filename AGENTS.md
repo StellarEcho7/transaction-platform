@@ -52,9 +52,6 @@ transaction-platform/
 - Strict layering:
   - Controller → Service → Repository (Prisma)
   - No direct DB access from controllers
-- Validation & Transformation:
-  - Use class-validator to validate the data
-  - Use class-transformer to transform DTOs
 
 ## DTO & Validation
 - All inputs must go through DTOs
@@ -100,6 +97,13 @@ transaction-platform/
 
 # Next.js Rules
 
+## UI Components
+- **NEVER use MUI components directly** in pages or other components
+- If a component doesn't exist — create it using `component-creator` skill
+- To change appearance of any component — modify the component itself in `src/components`, not on specific pages
+- Only basic components allowed in `src/components`
+- Complex components (pages/layouts with multiple basic components) must NOT be placed in `src/components`
+
 ## Architecture
 - Use App Router (no legacy pages router)
 - Split clearly:
@@ -130,7 +134,6 @@ transaction-platform/
   - route handlers
 
 ## UI
-- Use MUI for components
 - Use Tailwind for layout/spacing only
 - Avoid mixing styles хаотично
 
