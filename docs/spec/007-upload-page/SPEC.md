@@ -13,6 +13,7 @@ Implement Upload page in transaction-hub for uploading transactions via JSON fil
 ## 3. Acceptance Criteria
 
 - [ ] User can upload a JSON file via drag-and-drop or file picker
+- [ ] User can optionally enter a batch name (auto-generated if empty)
 - [ ] Uploaded data is validated client-side (valid JSON, required fields)
 - [ ] After upload, user sees batch creation result (batch ID, transaction count, batch name)
 - [ ] Error messages displayed for invalid files or server errors
@@ -22,6 +23,7 @@ Implement Upload page in transaction-hub for uploading transactions via JSON fil
 
 **MVP:**
 - JSON file upload with drag-and-drop + file picker
+- Optional batch name input (auto-generated if empty)
 - Client-side validation
 - Server action to proxy batch creation to transaction-service
 - Success/error feedback UI
@@ -51,7 +53,7 @@ Implement Upload page in transaction-hub for uploading transactions via JSON fil
 // Request (via POST body)
 {
   transactions: TransactionInput[],
-  batchName?: string
+  batchName?: string  // optional - auto-generated if empty
 }
 
 // TransactionInput (from generate-transactions.ts)
@@ -115,7 +117,7 @@ class TransactionDto {
 2. **Create server action for batch creation** — `src/app/actions/create-batch.ts` — typed wrapper around API route with error handling  
    *Files: new file*
 
-3. **Implement Upload page UI** — `src/app/(app)/upload/page.tsx` — file drop zone, validation, submission  
+3. **Implement Upload page UI** — `src/app/(app)/upload/page.tsx` — file drop zone, batch name input, validation, submission  
    *Files: modify existing placeholder*
 
 4. **Add SERVICE_URL to env vars** — `transaction-hub/.env.example` and create `transaction-hub/src/config.ts` for backend URL  
