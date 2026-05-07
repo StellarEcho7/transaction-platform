@@ -2,18 +2,16 @@
 
 import { useState } from "react";
 import {
-  Typography,
-  TextField,
-  Button,
-  Box,
-  Paper,
-  Alert,
-  Divider,
-} from "@mui/material";
-import {
   generateTransactions,
   TransactionInput,
 } from "@/src/lib/generate-transactions";
+import Box from "@/src/components/Box";
+import Paper from "@mui/material/Paper";
+import Typography from "@/src/components/Typography";
+import TextField from "@/src/components/TextField";
+import Divider from "@mui/material/Divider";
+import Button from "@/src/components/Button";
+import Alert from "@mui/material/Alert";
 
 export default function GeneratePage() {
   const [count, setCount] = useState(100);
