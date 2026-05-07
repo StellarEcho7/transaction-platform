@@ -42,9 +42,6 @@ Implement Upload page in transaction-hub for uploading transactions via JSON fil
 **Backend (transaction-service):**
 - No new endpoints (existing `POST /batches` reused)
 
-**Shared:**
-- Reuse existing `CreateBatchDto` and `TransactionDto` from transaction-service
-
 ## 6. Contracts
 
 **Frontend → BFF (Server Action / API Route):**
