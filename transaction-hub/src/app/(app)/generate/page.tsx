@@ -6,12 +6,12 @@ import {
   TransactionInput,
 } from "@/src/lib/generate-transactions";
 import Box from "@/src/components/Box";
-import Paper from "@mui/material/Paper";
+import Paper from "@/src/components/Paper";
 import Typography from "@/src/components/Typography";
 import TextField from "@/src/components/TextField";
-import Divider from "@mui/material/Divider";
+import Divider from "@/src/components/Divider";
 import Button from "@/src/components/Button";
-import Alert from "@mui/material/Alert";
+import Alert from "@/src/components/Alert";
 
 export default function GeneratePage() {
   const [count, setCount] = useState(100);
