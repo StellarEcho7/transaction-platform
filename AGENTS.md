@@ -29,12 +29,15 @@ transaction-platform/
 # NestJS Rules
 
 ## Architecture
-- Follow modular structure:
+- Follow ALWAYS modular structure:
   - Each feature = separate module (`*.module.ts`)
   - No god-modules
 - Strict layering:
   - Controller → Service → Repository (Prisma)
   - No direct DB access from controllers
+- Validation & Transformation:
+  - Use class-validator to validate the data
+  - Use class-transformer to transform DTOs
 
 ## DTO & Validation
 - All inputs must go through DTOs
