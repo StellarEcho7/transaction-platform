@@ -57,7 +57,7 @@ export class OutboxProcessor {
           });
 
           await this.outboxService.markProcessed(event.id);
-          this.logger.debug(
+          this.logger.log(
             `[OUTBOX] Published ${jobName} for transaction ${event.transactionId}`,
           );
         } catch (error) {

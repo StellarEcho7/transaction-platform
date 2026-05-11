@@ -25,7 +25,7 @@ export class QueueService {
   ) {}
 
   async publish(job: QueueJob): Promise<void> {
-    this.logger.debug(
+    this.logger.log(
       `[QUEUE] Publishing job: ${job.name}, jobId: ${job.opts?.jobId || 'auto'}`,
     );
     await this.transactionQueue.add(job.name, job.data, job.opts);

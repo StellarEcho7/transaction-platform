@@ -1,5 +1,3 @@
-"use server";
-
 export interface TransactionInput {
   transactionId: string;
   userId: string;

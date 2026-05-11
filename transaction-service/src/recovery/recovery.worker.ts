@@ -21,8 +21,6 @@ export class RecoveryWorker {
   async recover(): Promise<void> {
     if (this.isProcessing) return;
 
-    this.logger.log(`[RECOVERY] Running: ${Date.now()}`);
-
     this.isProcessing = true;
     try {
       const staleThreshold = new Date(Date.now() - DEDUPLICATION_INTERVAL_MS);

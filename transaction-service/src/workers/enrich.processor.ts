@@ -36,7 +36,7 @@ export class EnrichProcessor {
     const tx = await this.transactionService.getTransaction(transactionId);
 
     if (!tx || tx.currentStep === null) {
-      this.logger.debug(
+      this.logger.log(
         `[ENRICH] Skipping ${transactionId}: already completed or not found`,
       );
       return;
@@ -46,7 +46,7 @@ export class EnrichProcessor {
       tx.status === TransactionStatus.PROCESSING &&
       !this.isProcessingStale(tx.processingStartedAt)
     ) {
-      this.logger.debug(
+      this.logger.log(
         `[ENRICH] Skipping ${transactionId}: currently processing`,
       );
       return;

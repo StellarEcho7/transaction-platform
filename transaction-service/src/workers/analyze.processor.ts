@@ -35,7 +35,7 @@ export class AnalyzeProcessor {
     const tx = await this.transactionService.getTransaction(transactionId);
 
     if (!tx || tx.currentStep === null) {
-      this.logger.debug(
+      this.logger.log(
         `[ANALYZE] Skipping ${transactionId}: already completed or not found`,
       );
       return;
@@ -45,7 +45,7 @@ export class AnalyzeProcessor {
       tx.status === TransactionStatus.PROCESSING &&
       !this.isProcessingStale(tx.processingStartedAt)
     ) {
-      this.logger.debug(
+      this.logger.log(
         `[ANALYZE] Skipping ${transactionId}: currently processing`,
       );
       return;

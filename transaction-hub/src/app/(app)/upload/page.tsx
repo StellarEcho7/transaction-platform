@@ -10,31 +10,6 @@ import Alert from "@/src/components/Alert";
 import Divider from "@/src/components/Divider";
 import { createBatch, TransactionInput } from "@/src/app/actions/create-batch";
 
-const REQUIRED_FIELDS = [
-  "transactionId",
-  "userId",
-  "currency",
-  "timestamp",
-  "category",
-] as const;
-
-function validateTransaction(tx: unknown): string[] {
-  const errors: string[] = [];
-  if (!tx || typeof tx !== "object") {
-    return ["Invalid transaction object"];
-  }
-  const obj = tx as Record<string, unknown>;
-  for (const field of REQUIRED_FIELDS) {
-    if (obj[field] === undefined || obj[field] === null || obj[field] === "") {
-      errors.push(`Missing required field: ${field}`);
-    }
-  }
-  if (typeof obj.amount === "number" && obj.amount <= 0) {
-    errors.push("Amount must be greater than 0");
-  }
-  return errors;
-}
-
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [batchName, setBatchName] = useState("");
@@ -111,15 +86,10 @@ export default function UploadPage() {
         return;
       }
 
-      const validationErrors: string[] = [];
       const transactions: TransactionInput[] = [];
 
       for (let i = 0; i < data.length; i++) {
         const tx = data[i];
-        const errors = validateTransaction(tx);
-        if (errors.length > 0) {
-          validationErrors.push(`Transaction ${i + 1}: ${errors.join(", ")}`);
-        }
         transactions.push({
           transactionId: String(tx.transactionId),
           userId: String(tx.userId),
@@ -129,18 +99,6 @@ export default function UploadPage() {
           merchant: tx.merchant != null ? String(tx.merchant) : undefined,
           category: String(tx.category),
         });
-      }
-
-      if (validationErrors.length > 0) {
-        setError(
-          `Validation failed:\n${validationErrors.slice(0, 5).join("\n")}${
-            validationErrors.length > 5
-              ? `\n...and ${validationErrors.length - 5} more errors`
-              : ""
-          }`,
-        );
-        setIsLoading(false);
-        return;
       }
 
       const result = await createBatch(transactions, batchName || undefined);
