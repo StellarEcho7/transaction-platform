@@ -1,4 +1,5 @@
 ---
+name: security-auditor
 description: Performs security audits and identifies vulnerabilities
 mode: subagent
 tools:

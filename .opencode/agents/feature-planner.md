@@ -1,4 +1,5 @@
 ---
+name: feature-planner
 description: Create concise, execution-ready feature specs for LLM-driven implementation with strict scope control and codebase awareness
 mode: subagent
 temperature: 0.2
