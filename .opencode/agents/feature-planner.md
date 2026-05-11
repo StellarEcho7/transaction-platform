@@ -2,6 +2,7 @@
 name: feature-planner
 description: Create concise, execution-ready feature specs for LLM-driven implementation with strict scope control and codebase awareness
 temperature: 0.2
+mode: primary
 tools:
   write: false
   edit: false

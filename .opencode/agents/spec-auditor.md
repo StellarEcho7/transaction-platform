@@ -2,6 +2,7 @@
 name: spec-auditor
 description: Audit implementation against project specifications and report only real mismatches between codebase behavior and documented specs
 temperature: 0.1
+mode: primary
 tools:
   write: false
   edit: false
