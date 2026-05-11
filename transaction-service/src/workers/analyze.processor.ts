@@ -1,4 +1,5 @@
 import { Processor, Process } from '@nestjs/bull';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { TransactionService } from '../transaction/transaction.service';
 import { BatchService } from '../batch/batch.service';
@@ -19,6 +20,8 @@ export interface AnalyzeJobData {
 
 @Processor(QUEUE_NAME)
 export class AnalyzeProcessor {
+  private readonly logger = new Logger('AnalyzeWorker');
+
   constructor(
     private readonly transactionService: TransactionService,
     private readonly batchService: BatchService,
@@ -27,10 +30,14 @@ export class AnalyzeProcessor {
   @Process(JOB_NAME.ANALYZE)
   async handle(job: Job<AnalyzeJobData>): Promise<void> {
     const { transactionId } = job.data;
+    this.logger.log(`[ANALYZE] Starting job for transaction ${transactionId}`);
 
     const tx = await this.transactionService.getTransaction(transactionId);
 
     if (!tx || tx.currentStep === null) {
+      this.logger.debug(
+        `[ANALYZE] Skipping ${transactionId}: already completed or not found`,
+      );
       return;
     }
 
@@ -38,6 +45,9 @@ export class AnalyzeProcessor {
       tx.status === TransactionStatus.PROCESSING &&
       !this.isProcessingStale(tx.processingStartedAt)
     ) {
+      this.logger.debug(
+        `[ANALYZE] Skipping ${transactionId}: currently processing`,
+      );
       return;
     }
 
@@ -55,6 +65,19 @@ export class AnalyzeProcessor {
       await this.transactionService.markAsCompleted(transactionId);
     if (batchId) {
       await this.batchService.incrementProcessed(batchId);
+      this.logger.log(
+        `[ANALYZE] Transaction ${transactionId} completed, batch ${batchId} processed count incremented`,
+      );
+    }
+
+    if (analysisResult.fraudFlags.length > 0) {
+      this.logger.warn(
+        `[ANALYZE] Transaction ${transactionId} riskScore=${analysisResult.riskScore}, fraudFlags=${analysisResult.fraudFlags.join(', ')}`,
+      );
+    } else {
+      this.logger.log(
+        `[ANALYZE] Transaction ${transactionId} completed successfully, riskScore=${analysisResult.riskScore}`,
+      );
     }
   }
 

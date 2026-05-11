@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
@@ -21,6 +21,8 @@ import {
 
 @Injectable()
 export class BatchService {
+  private readonly logger = new Logger(BatchService.name);
+
   constructor(
     private prisma: PrismaService,
     private transactionService: TransactionService,
@@ -31,6 +33,8 @@ export class BatchService {
     const transactionIds = createBatchDto.transactions.map(
       (t) => t.transactionId,
     );
+
+    this.logger.log(`Creating batch "${batchName}" with ${createBatchDto.transactions.length} transactions`);
 
     const batch = await this.prisma.$transaction(async (tx) => {
       const batch = await tx.batch.create({
@@ -71,6 +75,7 @@ export class BatchService {
       return batch;
     });
 
+    this.logger.log(`Batch ${batch.id} created with ${batch.total} transactions, triggering VALIDATE step`);
     return plainToInstance(BatchResponseDto, batch);
   }
 

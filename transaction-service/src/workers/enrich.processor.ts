@@ -1,4 +1,5 @@
 import { Processor, Process } from '@nestjs/bull';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { TransactionService } from '../transaction/transaction.service';
 import { OutboxService } from '../outbox/outbox.service';
@@ -20,6 +21,8 @@ export interface EnrichJobData {
 
 @Processor(QUEUE_NAME)
 export class EnrichProcessor {
+  private readonly logger = new Logger('EnrichWorker');
+
   constructor(
     private readonly transactionService: TransactionService,
     private readonly outboxService: OutboxService,
@@ -28,10 +31,14 @@ export class EnrichProcessor {
   @Process(JOB_NAME.ENRICH)
   async handle(job: Job<EnrichJobData>): Promise<void> {
     const { transactionId } = job.data;
+    this.logger.log(`[ENRICH] Starting job for transaction ${transactionId}`);
 
     const tx = await this.transactionService.getTransaction(transactionId);
 
     if (!tx || tx.currentStep === null) {
+      this.logger.debug(
+        `[ENRICH] Skipping ${transactionId}: already completed or not found`,
+      );
       return;
     }
 
@@ -39,6 +46,9 @@ export class EnrichProcessor {
       tx.status === TransactionStatus.PROCESSING &&
       !this.isProcessingStale(tx.processingStartedAt)
     ) {
+      this.logger.debug(
+        `[ENRICH] Skipping ${transactionId}: currently processing`,
+      );
       return;
     }
 
@@ -61,6 +71,9 @@ export class EnrichProcessor {
     await this.outboxService.createEvent(
       transactionId,
       TransactionStep.ANALYZE,
+    );
+    this.logger.log(
+      `[ENRICH] Transaction ${transactionId} enriched: region=${enrichedData.region}, operationType=${enrichedData.operationType}, moving to ANALYZE`,
     );
   }
 

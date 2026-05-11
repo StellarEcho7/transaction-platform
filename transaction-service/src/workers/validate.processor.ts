@@ -1,4 +1,5 @@
 import { Processor, Process } from '@nestjs/bull';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { TransactionService } from '../transaction/transaction.service';
 import { BatchService } from '../batch/batch.service';
@@ -13,6 +14,8 @@ export interface ValidateJobData {
 
 @Processor(QUEUE_NAME)
 export class ValidateProcessor {
+  private readonly logger = new Logger('ValidateWorker');
+
   constructor(
     private readonly transactionService: TransactionService,
     private readonly batchService: BatchService,
@@ -22,10 +25,14 @@ export class ValidateProcessor {
   @Process(JOB_NAME.VALIDATE)
   async handle(job: Job<ValidateJobData>): Promise<void> {
     const { transactionId } = job.data;
+    this.logger.log(`[VALIDATE] Starting job for transaction ${transactionId}`);
 
     const tx = await this.transactionService.getTransaction(transactionId);
 
     if (!tx || tx.currentStep === null) {
+      this.logger.debug(
+        `[VALIDATE] Skipping ${transactionId}: already completed or not found`,
+      );
       return;
     }
 
@@ -33,6 +40,9 @@ export class ValidateProcessor {
       tx.status === TransactionStatus.PROCESSING &&
       !this.isProcessingStale(tx.processingStartedAt)
     ) {
+      this.logger.debug(
+        `[VALIDATE] Skipping ${transactionId}: currently processing`,
+      );
       return;
     }
 
@@ -41,6 +51,9 @@ export class ValidateProcessor {
     const validationResult = this.validateTransaction(tx);
 
     if (!validationResult.valid) {
+      this.logger.warn(
+        `[VALIDATE] Transaction ${transactionId} failed: ${validationResult.errors?.join(', ')}`,
+      );
       const batchId = await this.transactionService.markAsFailed(transactionId);
       if (batchId) {
         await this.batchService.incrementFailed(batchId);
@@ -55,6 +68,9 @@ export class ValidateProcessor {
     );
 
     await this.outboxService.createEvent(transactionId, TransactionStep.ENRICH);
+    this.logger.log(
+      `[VALIDATE] Transaction ${transactionId} validated successfully, moving to ENRICH`,
+    );
   }
 
   private isProcessingStale(processingStartedAt: Date | null): boolean {

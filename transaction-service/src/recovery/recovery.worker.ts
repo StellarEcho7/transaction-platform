@@ -21,6 +21,8 @@ export class RecoveryWorker {
   async recover(): Promise<void> {
     if (this.isProcessing) return;
 
+    this.logger.log(`[RECOVERY] Running: ${Date.now()}`);
+
     this.isProcessing = true;
     try {
       const staleThreshold = new Date(Date.now() - DEDUPLICATION_INTERVAL_MS);
@@ -33,6 +35,12 @@ export class RecoveryWorker {
         select: { id: true, currentStep: true },
       });
 
+      if (stuckTransactions.length > 0) {
+        this.logger.warn(
+          `[RECOVERY] Found ${stuckTransactions.length} stuck transactions, attempting to recover`,
+        );
+      }
+
       for (const tx of stuckTransactions) {
         if (!tx.currentStep) continue;
 
@@ -44,12 +52,12 @@ export class RecoveryWorker {
         if (!existingEvent) {
           await this.outboxService.createEvent(tx.id, tx.currentStep);
           this.logger.log(
-            `Recreated outbox event for stuck transaction ${tx.id}, step ${tx.currentStep}`,
+            `[RECOVERY] Re-created outbox event for stuck transaction ${tx.id}, step ${tx.currentStep}`,
           );
         }
       }
     } catch (error) {
-      this.logger.error('Error in recovery worker:', error);
+      this.logger.error('[RECOVERY] Error in recovery worker:', error);
     } finally {
       this.isProcessing = false;
     }

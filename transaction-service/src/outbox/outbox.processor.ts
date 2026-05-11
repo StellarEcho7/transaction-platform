@@ -34,6 +34,10 @@ export class OutboxProcessor {
     try {
       const events = await this.outboxService.getUnprocessed(50);
 
+      if (events.length > 0) {
+        this.logger.log(`[OUTBOX] Found ${events.length} pending events, processing...`);
+      }
+
       for (const event of events) {
         try {
           const jobName = STEP_TO_JOB_NAME[event.step];
@@ -54,17 +58,17 @@ export class OutboxProcessor {
 
           await this.outboxService.markProcessed(event.id);
           this.logger.debug(
-            `Published job ${jobName} for transaction ${event.transactionId}`,
+            `[OUTBOX] Published ${jobName} for transaction ${event.transactionId}`,
           );
         } catch (error) {
           this.logger.error(
-            `Failed to publish job for event ${event.id}:`,
+            `[OUTBOX] Failed to publish job for event ${event.id}:`,
             error,
           );
         }
       }
     } catch (error) {
-      this.logger.error('Error processing outbox:', error);
+      this.logger.error('[OUTBOX] Error processing outbox:', error);
     } finally {
       this.isProcessing = false;
     }
