@@ -39,6 +39,9 @@ services:
     env_file:
       - .env
     environment:
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      SERVICE_URL: ${SERVICE_URL}
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/transaction_hub
     depends_on:
       - postgres
