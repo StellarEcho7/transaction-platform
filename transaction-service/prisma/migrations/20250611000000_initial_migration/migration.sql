@@ -8,7 +8,7 @@ CREATE TYPE "TransactionStep" AS ENUM ('VALIDATE', 'ENRICH', 'ANALYZE');
 CREATE TYPE "BatchStatus" AS ENUM ('PROCESSING', 'COMPLETED', 'FAILED');
 
 -- CreateTable
-CREATE TABLE "Batch" (
+CREATE TABLE "batch" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "status" "BatchStatus" NOT NULL DEFAULT 'PROCESSING',
@@ -19,11 +19,11 @@ CREATE TABLE "Batch" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Batch_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "batch_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Transaction" (
+CREATE TABLE "transaction" (
     "id" TEXT NOT NULL,
     "transactionId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -43,11 +43,11 @@ CREATE TABLE "Transaction" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Transaction_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "transaction_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "OutboxEvent" (
+CREATE TABLE "outbox_event" (
     "id" TEXT NOT NULL,
     "transactionId" TEXT NOT NULL,
     "step" "TransactionStep" NOT NULL,
@@ -55,26 +55,26 @@ CREATE TABLE "OutboxEvent" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "processedAt" TIMESTAMP(3),
 
-    CONSTRAINT "OutboxEvent_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "outbox_event_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Transaction_transactionId_key" ON "Transaction"("transactionId");
+CREATE UNIQUE INDEX "transaction_transactionId_key" ON "transaction"("transactionId");
 
 -- CreateIndex
-CREATE INDEX "Transaction_batchId_idx" ON "Transaction"("batchId");
+CREATE INDEX "transaction_batchId_idx" ON "transaction"("batchId");
 
 -- CreateIndex
-CREATE INDEX "Transaction_status_idx" ON "Transaction"("status");
+CREATE INDEX "transaction_status_idx" ON "transaction"("status");
 
 -- CreateIndex
-CREATE INDEX "OutboxEvent_transactionId_idx" ON "OutboxEvent"("transactionId");
+CREATE INDEX "outbox_event_transactionId_idx" ON "outbox_event"("transactionId");
 
 -- CreateIndex
-CREATE INDEX "OutboxEvent_status_idx" ON "OutboxEvent"("status");
+CREATE INDEX "outbox_event_status_idx" ON "outbox_event"("status");
 
 -- AddForeignKey
-ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "Batch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "transaction" ADD CONSTRAINT "transaction_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "batch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OutboxEvent" ADD CONSTRAINT "OutboxEvent_transactionId_fkey" FOREIGN KEY ("transactionId") REFERENCES "Transaction"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "outbox_event" ADD CONSTRAINT "outbox_event_transactionId_fkey" FOREIGN KEY ("transactionId") REFERENCES "transaction"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
