@@ -37,6 +37,8 @@ model Batch {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   transactions Transaction[]
+
+  @@map("batch")
 }
 
 model Transaction {
@@ -61,6 +63,8 @@ model Transaction {
   updatedAt           DateTime         @updatedAt
 
   outboxEvents        OutboxEvent[]
+
+  @@map("transaction")
 }
 
 model OutboxEvent {
@@ -71,4 +75,6 @@ model OutboxEvent {
   createdAt     DateTime @default(now())
   processedAt   DateTime?
   transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  @@map("outbox_event")
 }
