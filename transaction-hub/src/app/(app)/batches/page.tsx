@@ -212,18 +212,18 @@ export default function BatchesPage() {
           <TableContainer
             component={Paper}
             elevation={0}
-            sx={{ border: "1px solid", borderColor: "divider" }}
+            sx={{ border: "1px solid", borderColor: "divider", minWidth: 900 }}
           >
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell align="right">Total</TableCell>
-                  <TableCell align="right">Processed</TableCell>
-                  <TableCell align="right">Failed</TableCell>
-                  <TableCell>Progress</TableCell>
-                  <TableCell>Created</TableCell>
+                  <TableCell sx={{ minWidth: 150 }}>Name</TableCell>
+                  <TableCell sx={{ width: 110 }}>Status</TableCell>
+                  <TableCell align="right" sx={{ width: 80 }}>Total</TableCell>
+                  <TableCell align="right" sx={{ width: 100 }}>Processed</TableCell>
+                  <TableCell align="right" sx={{ width: 80 }}>Failed</TableCell>
+                  <TableCell sx={{ minWidth: 220, width: 250 }}>Progress</TableCell>
+                  <TableCell sx={{ width: 160 }}>Created</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
