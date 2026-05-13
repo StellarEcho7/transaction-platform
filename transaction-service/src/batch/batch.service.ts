@@ -102,45 +102,41 @@ export class BatchService {
   }
 
   async incrementProcessed(batchId: string): Promise<void> {
-    const batch = await this.prisma.batch.findUnique({
-      where: { id: batchId },
-    });
-
-    if (!batch) return;
-
-    const newProcessed = batch.processed + 1;
-
     await this.prisma.batch.update({
       where: { id: batchId },
       data: {
-        processed: newProcessed,
-        status:
-          newProcessed + batch.failed >= batch.total
-            ? BatchStatus.COMPLETED
-            : batch.status,
+        processed: { increment: 1 },
       },
     });
+    const batch = await this.prisma.batch.findUnique({
+      where: { id: batchId },
+      select: { processed: true, failed: true, total: true },
+    });
+    if (batch && batch.processed + batch.failed >= batch.total) {
+      await this.prisma.batch.update({
+        where: { id: batchId },
+        data: { status: BatchStatus.COMPLETED },
+      });
+    }
   }
 
   async incrementFailed(batchId: string): Promise<void> {
-    const batch = await this.prisma.batch.findUnique({
-      where: { id: batchId },
-    });
-
-    if (!batch) return;
-
-    const newFailed = batch.failed + 1;
-
     await this.prisma.batch.update({
       where: { id: batchId },
       data: {
-        failed: newFailed,
-        status:
-          newFailed + batch.processed >= batch.total
-            ? BatchStatus.COMPLETED
-            : batch.status,
+        failed: { increment: 1 },
       },
     });
+    const batch = await this.prisma.batch.findUnique({
+      where: { id: batchId },
+      select: { processed: true, failed: true, total: true },
+    });
+    if (batch && batch.processed + batch.failed >= batch.total) {
+      await this.prisma.batch.update({
+        where: { id: batchId },
+        data: { status: BatchStatus.COMPLETED },
+      });
+    }
   }
 
   private generateBatchName(): string {
