@@ -122,7 +122,7 @@ export default function BatchesPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PROCESSING":
-        return "warning";
+        return "info";
       case "COMPLETED":
         return "success";
       case "FAILED":
