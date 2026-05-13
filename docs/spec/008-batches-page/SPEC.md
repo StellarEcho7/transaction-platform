@@ -1,69 +1,69 @@
 # 1. Summary
 
-Реализация страницы списка batchей с отображением прогресс-бара и автоматическим обновлением статуса в реальном времени (polling).
+Implementation of the batches list page with a progress bar display and automatic status updates in real-time (polling).
 
 ---
 
 # 2. User Story
 
-**Кто:** Пользователь системы  
-**Что:** Просмотр списка batchей с отслеживанием прогресса обработки транзакций  
-**Зачем:** Видеть актуальное состояние всех batchей в реальном времени
+**Who:** System user  
+**What:** Viewing the list of batches with transaction processing progress tracking  
+**Why:** To see the current state of all batches in real-time
 
 ---
 
 # 3. Acceptance Criteria
 
-## Страница списка batchей (`/batches`)
-- [ ] Отображается таблица/список всех batchей
-- [ ] Показываются: name, status, total, processed, failed, createdAt
-- [ ] Пагинация (по 10/20/50 записей)
-- [ ] Фильтр по status (PROCESSING, COMPLETED, FAILED)
-- [ ] Клик по batch → переход на страницу деталей
-- [ ] Прогресс-бар для каждого batch (processed + failed / total)
-- [ ] Polling для обновления данных:
-  - Запускать polling когда есть хотя бы один batch со статусом PROCESSING
-  - Интервал опроса: 3-5 секунд
-  - Прекращать polling когда все batchи в статусе COMPLETED или FAILED (или нет PROCESSING)
-- [ ] Loading states при загрузке данных
-- [ ] Error states при ошибках API
-- [ ] Пустое состояние (no batches)
+## Batches List Page (`/batches`)
+- [ ] Display a table/list of all batches
+- [ ] Show: name, status, total, processed, failed, createdAt
+- [ ] Pagination (10/20/50 records per page)
+- [ ] Filter by status (PROCESSING, COMPLETED, FAILED)
+- [ ] Click on batch → navigate to details page
+- [ ] Progress bar for each batch (processed + failed / total)
+- [ ] Polling for data updates:
+  - Start polling when there is at least one batch with PROCESSING status
+  - Poll interval: 3-5 seconds
+  - Stop polling when all batches are in COMPLETED or FAILED status (or no PROCESSING batches exist)
+- [ ] Loading states during data fetching
+- [ ] Error states on API errors
+- [ ] Empty state (no batches)
 
 ---
 
 # 4. Scope
 
 ## MVP
-- Реализация страницы списка batchей с пагинацией и фильтром
-- Прогресс-бар для каждого batch
-- Polling для реального времени (только для списка, не для конкретного batch)
-- Добавление GET эндпоинта в `/api/batches`
+- Implementation of batches list page with pagination and filter
+- Progress bar for each batch
+- Polling for real-time updates (only for list, not for specific batch)
+- Adding GET endpoint to `/api/batches`
 
 ## Out of scope
-- Страница деталей batch ( будет в задаче 009)
-- Редактирование batchей
-- Удаление batchей
-- Real-time через WebSockets
+- Batch details page (will be in task 009)
+- Batch editing
+- Batch deletion
+- Real-time via WebSockets
 
 ---
 
 # 5. Technical Plan
 
-## Backend (не требует изменений)
-- `GET /batches` уже существует в transaction-service
+## Backend (no changes required)
+- `GET /batches` already exists in transaction-service
 
 ## Frontend
 
-### API Route (добавить GET)
-- `GET /api/batches` - проксирует `GET /batches?page=&limit=&status=`
+### API Route (add GET)
+- `GET /api/batches` - proxies to `GET /batches?page=&limit=&status=`
 
-### Server Actions (создать)
-- `getBatches(page, limit, status)` - получить список batchей
+### Server Actions (create)
+- `getBatches(page, limit, status)` - fetch list of batches
 
-### Страница
-- `(app)/batches/page.tsx` - компонент списка batchей с polling
+### Page
+- `(app)/batches/page.tsx` - batches list component with polling
 
-### Polling логика
+### Polling Logic
 ```
 const [batches, setBatches] = useState([])
 
@@ -72,7 +72,7 @@ useEffect(() => {
     const newBatches = await getBatches(...)
     setBatches(newBatches)
 
-    // Проверить есть ли PROCESSING
+    // Check if any PROCESSING batches exist
     const hasProcessing = newBatches.some(b => b.status === 'PROCESSING')
     if (!hasProcessing) clearInterval(interval)
   }, 3000)
@@ -120,41 +120,41 @@ Response:
 
 # 7. Tasks
 
-1. **Добавить GET эндпоинт в `/api/batches` route**
-   - Добавить GET метод для списка batchей
-   - Прокидывать query params в backend
+1. **Add GET endpoint to `/api/batches` route**
+   - Add GET method for batches list
+   - Forward query params to backend
 
-2. **Создать Server Action для работы с batches**
+2. **Create Server Action for batches**
    - `getBatches(page, limit, status)`
 
-3. **Реализовать страницу списка batchей (`/batches`)**
-   - Компонент таблицы batchей
-   - Пагинация
-   - Фильтр по status
-   - Прогресс-бар
-   - Polling логика (запуск/остановка на основе статусов)
+3. **Implement batches list page (`/batches`)**
+   - Batches table component
+   - Pagination
+   - Status filter
+   - Progress bar
+   - Polling logic (start/stop based on statuses)
    - Loading/error/empty states
 
-4. **Запустить quality-gate**
-   - Проверить build, lint, types
+4. **Run quality-gate**
+   - Verify build, lint, types
 
 ---
 
 # 8. Risk Notes
 
-- **Polling может нагружать сервер** - интервал 3-5 секунд разумный для небольшого количества пользователей
-- **Нет рисков для существующих flows** — добавляются только GET эндпоинты, POST остается без изменений
-- **Зависимость от backend API** — frontend полагается на существующий эндпоинт transaction-service
+- **Polling may put load on server** - 3-5 second interval is reasonable for a small number of users
+- **No risk to existing flows** — only GET endpoints are added, POST remains unchanged
+- **Dependency on backend API** — frontend relies on existing endpoint in transaction-service
 
 ---
 
 # 9. Definition of Done
 
-- [ ] Страница `/batches` отображает список batchей с пагинацией и фильтром
-- [ ] Прогресс-бар отображается корректно для каждого batch
-- [ ] Polling запускается при наличии PROCESSING batchей
-- [ ] Polling останавливается когда все batchи завершены (COMPLETED/FAILED)
-- [ ] Loading и error states реализованы
-- [ ] Пустые состояния обработаны
-- [ ] quality-gate проходит (build, lint, types)
-- [ ] Существующие flows (upload, create batch) работают без изменений
+- [ ] Page `/batches` displays list of batches with pagination and filter
+- [ ] Progress bar displays correctly for each batch
+- [ ] Polling starts when PROCESSING batches exist
+- [ ] Polling stops when all batches are completed (COMPLETED/FAILED)
+- [ ] Loading and error states are implemented
+- [ ] Empty states are handled
+- [ ] quality-gate passes (build, lint, types)
+- [ ] Existing flows (upload, create batch) work without changes

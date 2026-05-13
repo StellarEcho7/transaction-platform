@@ -1,26 +1,26 @@
 # 1. Summary
 
-Реализация страницы деталей batch со списком транзакций и автоматическим обновлением статуса в реальном времени (polling).
+Implementation of the batch details page with a list of transactions and automatic status updates in real-time (polling).
 
 ---
 
 # 2. User Story
 
-**Кто:** Пользователь системы  
-**Что:** Просмотр деталей конкретного batch со списком транзакций и их статусами  
-**Зачем:** Детально отслеживать прогресс обработки транзакций внутри batch, видеть результаты анализа (region, riskScore, fraudFlags)
+**Who:** System user  
+**What:** Viewing details of a specific batch with a list of transactions and their statuses  
+**Why:** To track transaction processing progress in detail within the batch, see analysis results (region, riskScore, fraudFlags)
 
 ---
 
 # 3. Acceptance Criteria
 
-## Страница деталей batch (`/batches/[id]`)
-- [ ] Tile (карточка) с информацией о batch:
+## Batch Details Page (`/batches/[id]`)
+- [ ] Tile (card) with batch information:
   - name, status, total, processed, failed, source, createdAt
-- [ ] Прогресс-бар (processed + failed / total)
-- [ ] Кнопка "Назад" для возврата к списку
-- [ ] Таблица транзакций batch с пагинацией
-- [ ] Для каждой транзакции показываются:
+- [ ] Progress bar (processed + failed / total)
+- [ ] "Back" button to return to list
+- [ ] Transactions table with pagination
+- [ ] For each transaction, display:
   - transactionId
   - amount
   - currency
@@ -32,52 +32,52 @@
   - region
   - riskScore
   - fraudFlags
-- [ ] Polling для обновления данных транзакций:
-  - Запускать polling когда batch в статусе PROCESSING
-  - Интервал опроса: 3-5 секунд
-  - Прекращать polling когда batch в статусе COMPLETED или FAILED
-- [ ] Loading states при загрузке данных
-- [ ] Error states при ошибках API
-- [ ] Пустое состояние (no transactions)
+- [ ] Polling for transaction data updates:
+  - Start polling when batch is in PROCESSING status
+  - Poll interval: 3-5 seconds
+  - Stop polling when batch is in COMPLETED or FAILED status
+- [ ] Loading states during data fetching
+- [ ] Error states on API errors
+- [ ] Empty state (no transactions)
 
 ---
 
 # 4. Scope
 
 ## MVP
-- Реализация страницы деталей batch с Tile и прогресс-баром
-- Таблица транзакций с пагинацией
-- Polling для реального времени статусов транзакций
-- Добавление GET эндпоинтов в `/api/batches/[id]` и `/api/batches/[id]/transactions`
+- Implementation of batch details page with Tile and progress bar
+- Transactions table with pagination
+- Polling for real-time transaction status updates
+- Adding GET endpoints to `/api/batches/[id]` and `/api/batches/[id]/transactions`
 
 ## Out of scope
-- Редактирование транзакций
-- Удаление транзакций
-- Экспорт данных
-- Real-time через WebSockets
+- Transaction editing
+- Transaction deletion
+- Data export
+- Real-time via WebSockets
 
 ---
 
 # 5. Technical Plan
 
-## Backend (не требует изменений)
-- `GET /batches/:id` уже существует в transaction-service
-- `GET /batches/:id/transactions` уже существует
+## Backend (no changes required)
+- `GET /batches/:id` already exists in transaction-service
+- `GET /batches/:id/transactions` already exists
 
 ## Frontend
 
-### API Route (добавить GET)
-- `GET /api/batches/[id]` - проксирует `GET /batches/:id`
-- `GET /api/batches/[id]/transactions` - проксирует `GET /batches/:id/transactions?page=&limit=`
+### API Route (add GET)
+- `GET /api/batches/[id]` - proxies to `GET /batches/:id`
+- `GET /api/batches/[id]/transactions` - proxies to `GET /batches/:id/transactions?page=&limit=`
 
-### Server Actions (создать)
-- `getBatch(id)` - получить детали batch
-- `getBatchTransactions(batchId, page, limit)` - получить транзакции batch
+### Server Actions (create)
+- `getBatch(id)` - fetch batch details
+- `getBatchTransactions(batchId, page, limit)` - fetch batch transactions
 
-### Страница
-- `(app)/batches/[id]/page.tsx` - компонент деталей batch с транзакциями и polling
+### Page
+- `(app)/batches/[id]/page.tsx` - batch details component with transactions and polling
 
-### Polling логика
+### Polling Logic
 ```
 const [batch, setBatch] = useState(null)
 const [transactions, setTransactions] = useState([])
@@ -91,7 +91,7 @@ useEffect(() => {
     setBatch(newBatch)
     setTransactions(newTransactions)
 
-    // Остановить polling если batch завершен
+    // Stop polling if batch is completed
     if (newBatch.status === 'COMPLETED' || newBatch.status === 'FAILED') {
       clearInterval(interval)
     }
@@ -170,44 +170,44 @@ Response:
 
 # 7. Tasks
 
-1. **Добавить GET эндпоинты в `/api/batches` route**
-   - Добавить GET метод для деталей batch (`[id]`)
-   - Добавить GET метод для транзакций batch (`[id]/transactions`)
-   - Прокидывать query params в backend
+1. **Add GET endpoints to `/api/batches` route**
+   - Add GET method for batch details (`[id]`)
+   - Add GET method for batch transactions (`[id]/transactions`)
+   - Forward query params to backend
 
-2. **Создать Server Actions для работы с batch**
+2. **Create Server Actions for batch**
    - `getBatch(id)`
    - `getBatchTransactions(batchId, page, limit)`
 
-3. **Реализовать страницу деталей batch (`/batches/[id]`)**
-   - Tile с информацией о batch + прогресс-бар
-   - Кнопка "Назад"
-   - Таблица транзакций с пагинацией
-   - Polling логика (запуск/остановка на основе статуса batch)
+3. **Implement batch details page (`/batches/[id]`)**
+   - Tile with batch information + progress bar
+   - "Back" button
+   - Transactions table with pagination
+   - Polling logic (start/stop based on batch status)
    - Loading/error/empty states
 
-4. **Запустить quality-gate**
-   - Проверить build, lint, types
+4. **Run quality-gate**
+   - Verify build, lint, types
 
 ---
 
 # 8. Risk Notes
 
-- **Polling может нагружать сервер** - интервал 3-5 секунд разумный для отдельного batch
-- **Зависимость от backend API** — frontend полагается на существующие эндпоинты transaction-service
-- **Пагинация** — нужно корректно обрабатывать pagination response от backend
+- **Polling may put load on server** - 3-5 second interval is reasonable for a single batch
+- **Dependency on backend API** — frontend relies on existing endpoints in transaction-service
+- **Pagination** — need to correctly handle pagination response from backend
 
 ---
 
 # 9. Definition of Done
 
-- [ ] Страница `/batches/[id]` отображает Tile с информацией о batch
-- [ ] Прогресс-бар отображается корректно
-- [ ] Таблица транзакций отображает все необходимые поля (включая region, riskScore, fraudFlags)
-- [ ] Пагинация работает для транзакций
-- [ ] Polling запускается при статусе PROCESSING
-- [ ] Polling останавливается при статусе COMPLETED или FAILED
-- [ ] Кнопка "Назад" работает корректно
-- [ ] Loading и error states реализованы
-- [ ] Пустые состояния обработаны
-- [ ] quality-gate проходит (build, lint, types)
+- [ ] Page `/batches/[id]` displays Tile with batch information
+- [ ] Progress bar displays correctly
+- [ ] Transactions table displays all required fields (including region, riskScore, fraudFlags)
+- [ ] Pagination works for transactions
+- [ ] Polling starts when status is PROCESSING
+- [ ] Polling stops when status is COMPLETED or FAILED
+- [ ] "Back" button works correctly
+- [ ] Loading and error states are implemented
+- [ ] Empty states are handled
+- [ ] quality-gate passes (build, lint, types)
