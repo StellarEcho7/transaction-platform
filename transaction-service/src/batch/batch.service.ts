@@ -1,15 +1,18 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  ConflictException,
+} from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { BatchResponseDto } from './dto/batch-response.dto';
 import { BatchListQueryDto } from './dto/batch-list-query.dto';
 import { BatchDetailDto } from './dto/batch-detail.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
-import {
-  BatchStatus,
-  BatchSource,
-} from './constants';
+import { BatchStatus, BatchSource } from './constants';
 import { TransactionListQueryDto } from './dto/transaction-list-query.dto';
 import { TransactionDetailDto } from './dto/transaction-detail.dto';
 import { TransactionService } from '../transaction/transaction.service';
@@ -34,7 +37,9 @@ export class BatchService {
       (t) => t.transactionId,
     );
 
-    this.logger.log(`Creating batch "${batchName}" with ${createBatchDto.transactions.length} transactions`);
+    this.logger.log(
+      `Creating batch "${batchName}" with ${createBatchDto.transactions.length} transactions`,
+    );
 
     const batch = await this.prisma.$transaction(async (tx) => {
       const batch = await tx.batch.create({
@@ -48,21 +53,36 @@ export class BatchService {
         },
       });
 
-      await tx.transaction.createMany({
-        data: createBatchDto.transactions.map((t, index) => ({
-          id: transactionIds[index],
-          transactionId: t.transactionId,
-          userId: t.userId,
-          amount: t.amount,
-          currency: t.currency,
-          timestamp: new Date(t.timestamp),
-          merchant: t.merchant,
-          category: t.category,
-          batchId: batch.id,
-          status: TransactionStatus.PENDING,
-          currentStep: TransactionStep.VALIDATE,
-        })),
-      });
+      try {
+        await tx.transaction.createMany({
+          data: createBatchDto.transactions.map((t, index) => ({
+            id: transactionIds[index],
+            transactionId: t.transactionId,
+            userId: t.userId,
+            amount: t.amount,
+            currency: t.currency,
+            timestamp: new Date(t.timestamp),
+            merchant: t.merchant,
+            category: t.category,
+            batchId: batch.id,
+            status: TransactionStatus.PENDING,
+            currentStep: TransactionStep.VALIDATE,
+          })),
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          this.logger.error(
+            `Duplicate transaction IDs detected in batch "${batchName}"`,
+          );
+          throw new ConflictException(
+            'One or more transactions already exist in the system. Please check your data for duplicates.',
+          );
+        }
+        throw error;
+      }
 
       await tx.outboxEvent.createMany({
         data: transactionIds.map((id) => ({
@@ -75,7 +95,9 @@ export class BatchService {
       return batch;
     });
 
-    this.logger.log(`Batch ${batch.id} created with ${batch.total} transactions, triggering VALIDATE step`);
+    this.logger.log(
+      `Batch ${batch.id} created with ${batch.total} transactions, triggering VALIDATE step`,
+    );
     return plainToInstance(BatchResponseDto, batch);
   }
 
