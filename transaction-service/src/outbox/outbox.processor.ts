@@ -32,7 +32,7 @@ export class OutboxProcessor {
 
     this.isProcessing = true;
     try {
-      const events = await this.outboxService.getUnprocessed(50);
+      const events = await this.outboxService.getUnprocessed(100);
 
       if (events.length > 0) {
         this.logger.log(
