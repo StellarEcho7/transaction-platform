@@ -219,10 +219,18 @@ export default function BatchesPage() {
                 <TableRow>
                   <TableCell sx={{ minWidth: 150 }}>Name</TableCell>
                   <TableCell sx={{ width: 110 }}>Status</TableCell>
-                  <TableCell align="right" sx={{ width: 80 }}>Total</TableCell>
-                  <TableCell align="right" sx={{ width: 100 }}>Processed</TableCell>
-                  <TableCell align="right" sx={{ width: 80 }}>Failed</TableCell>
-                  <TableCell sx={{ minWidth: 220, width: 250 }}>Progress</TableCell>
+                  <TableCell align="right" sx={{ width: 80 }}>
+                    Total
+                  </TableCell>
+                  <TableCell align="right" sx={{ width: 100 }}>
+                    Processed
+                  </TableCell>
+                  <TableCell align="right" sx={{ width: 80 }}>
+                    Failed
+                  </TableCell>
+                  <TableCell sx={{ minWidth: 220, width: 250 }}>
+                    Progress
+                  </TableCell>
                   <TableCell sx={{ width: 160 }}>Created</TableCell>
                 </TableRow>
               </TableHead>

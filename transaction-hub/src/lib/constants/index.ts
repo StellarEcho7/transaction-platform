@@ -1,1 +1,1 @@
-export * from './transaction-rules';
+export * from "./transaction-rules";
