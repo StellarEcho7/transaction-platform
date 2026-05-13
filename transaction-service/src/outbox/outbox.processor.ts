@@ -35,7 +35,9 @@ export class OutboxProcessor {
       const events = await this.outboxService.getUnprocessed(50);
 
       if (events.length > 0) {
-        this.logger.log(`[OUTBOX] Found ${events.length} pending events, processing...`);
+        this.logger.log(
+          `[OUTBOX] Found ${events.length} pending events, processing...`,
+        );
       }
 
       for (const event of events) {
