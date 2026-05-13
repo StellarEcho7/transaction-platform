@@ -46,7 +46,12 @@ export default function UserMenu() {
         >
           Profile
         </MenuItem>
-        <MenuItem onClick={() => { handleClose(); signOut({ callbackUrl: "/login" }); }}>
+        <MenuItem
+          onClick={() => {
+            handleClose();
+            signOut({ callbackUrl: "/login" });
+          }}
+        >
           Logout
         </MenuItem>
       </Menu>

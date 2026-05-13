@@ -66,7 +66,9 @@ function generateTimestamp(): string {
   return new Date(now.getTime() - offset).toISOString();
 }
 
-export function generateTransactions(params: GenerateParams): TransactionInput[] {
+export function generateTransactions(
+  params: GenerateParams,
+): TransactionInput[] {
   const { count, invalidPercent, dangerousPercent, seed } = params;
 
   if (count < 1 || count > 10000) {
@@ -178,7 +180,10 @@ function generateDangerousTransaction(random: () => number): TransactionInput {
       amount: parseFloat((random() * 500 + 100).toFixed(2)),
       currency: CURRENCIES[Math.floor(random() * CURRENCIES.length)],
       timestamp: generateTimestamp(),
-      merchant: SUSPICIOUS_MERCHANTS[Math.floor(random() * SUSPICIOUS_MERCHANTS.length)],
+      merchant:
+        SUSPICIOUS_MERCHANTS[
+          Math.floor(random() * SUSPICIOUS_MERCHANTS.length)
+        ],
       category: "unknown",
     };
   }

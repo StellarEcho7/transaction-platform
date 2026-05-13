@@ -1,4 +1,6 @@
-import MuiDivider, { DividerProps as MuiDividerProps } from "@mui/material/Divider";
+import MuiDivider, {
+  DividerProps as MuiDividerProps,
+} from "@mui/material/Divider";
 import { forwardRef } from "react";
 
 type DividerProps = MuiDividerProps;

@@ -1,6 +1,10 @@
 "use client";
 
-import { ThemeProvider as MuiThemeProvider, createTheme, CssBaseline } from "@mui/material";
+import {
+  ThemeProvider as MuiThemeProvider,
+  createTheme,
+  CssBaseline,
+} from "@mui/material";
 
 const lightTheme = createTheme({
   palette: {
