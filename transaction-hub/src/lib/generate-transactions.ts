@@ -15,35 +15,14 @@ export interface TransactionInput {
   category: string;
 }
 
-const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF"];
-const MERCHANTS = [
-  "Amazon",
-  "Walmart",
-  "Target",
-  "Apple Store",
-  "Best Buy",
-  "Starbucks",
-  "McDonald's",
-  "Uber",
-  "Netflix",
-  "Spotify",
-];
-const CATEGORIES = [
-  "shopping",
-  "food",
-  "transport",
-  "entertainment",
-  "utilities",
-  "health",
-  "travel",
-];
-
-const SUSPICIOUS_MERCHANTS = [
-  "Unknown Store",
-  "Test Merchant",
-  "Fake Shop",
-  "Suspicious LLC",
-];
+import {
+  HIGH_AMOUNT_THRESHOLD,
+  SUSPICIOUS_KEYWORDS,
+  US_MERCHANTS,
+  ASIA_MERCHANTS,
+  EU_MERCHANTS,
+  VALIDATION_INVALID_VALUES,
+} from "./constants/transaction-rules";
 
 function seededRandom(seed: number): () => number {
   return function () {
@@ -108,85 +87,84 @@ export function generateTransactions(
 }
 
 function generateValidTransaction(random: () => number): TransactionInput {
+  const validMerchants = [
+    ...US_MERCHANTS.map((m) => m.charAt(0).toUpperCase() + m.slice(1)),
+    ...ASIA_MERCHANTS.map((m) => m.charAt(0).toUpperCase() + m.slice(1)),
+    ...EU_MERCHANTS.map((m) => m.charAt(0).toUpperCase() + m.slice(1)),
+  ];
   return {
     transactionId: generateUUID(),
     userId: generateUUID(),
     amount: parseFloat((random() * 1000 + 1).toFixed(2)),
-    currency: CURRENCIES[Math.floor(random() * CURRENCIES.length)],
+    currency: "USD",
     timestamp: generateTimestamp(),
-    merchant: MERCHANTS[Math.floor(random() * MERCHANTS.length)],
-    category: CATEGORIES[Math.floor(random() * CATEGORIES.length)],
+    merchant: validMerchants[Math.floor(random() * validMerchants.length)],
+    category: "shopping",
   };
 }
 
 function generateInvalidTransaction(random: () => number): TransactionInput {
-  const invalidType = Math.floor(random() * 4);
-  const base: TransactionInput = {
+  const invalidType = Math.floor(random() * 5);
+  const base = {
     transactionId: generateUUID(),
     userId: generateUUID(),
     amount: 100,
     currency: "USD",
     timestamp: generateTimestamp(),
-    merchant: "Test Store",
+    merchant: "Amazon",
     category: "shopping",
   };
 
   switch (invalidType) {
     case 0:
-      return {
-        transactionId: base.transactionId,
-        userId: base.userId,
-        currency: base.currency,
-        timestamp: base.timestamp,
-        category: base.category,
-      };
+      base.transactionId = base.transactionId + "-invalid";
+      base.userId = VALIDATION_INVALID_VALUES.EMPTY_STRING;
+      break;
     case 1:
-      base.amount = 0;
+      base.userId = VALIDATION_INVALID_VALUES.WHITESPACE_STRING;
       break;
     case 2:
-      base.currency = "INVALID";
+      base.amount = VALIDATION_INVALID_VALUES.ZERO_AMOUNT;
       break;
     case 3:
-      return {
-        transactionId: base.transactionId,
-        userId: base.userId,
-        amount: base.amount,
-        currency: base.currency,
-        timestamp: base.timestamp,
-        category: base.category,
-      };
+      base.merchant = VALIDATION_INVALID_VALUES.EMPTY_STRING;
+      break;
+    case 4:
+      base.category = VALIDATION_INVALID_VALUES.EMPTY_STRING;
+      break;
   }
 
   return base;
 }
 
 function generateDangerousTransaction(random: () => number): TransactionInput {
-  const dangerousType = Math.floor(random() * 2);
+  const dangerousType = Math.floor(random() * 3);
 
   if (dangerousType === 0) {
     return {
       transactionId: generateUUID(),
       userId: generateUUID(),
-      amount: parseFloat((random() * 9000 + 5000).toFixed(2)),
-      currency: CURRENCIES[Math.floor(random() * CURRENCIES.length)],
+      amount: parseFloat((HIGH_AMOUNT_THRESHOLD + random() * 1000).toFixed(2)),
+      currency: "USD",
       timestamp: generateTimestamp(),
-      merchant: MERCHANTS[Math.floor(random() * MERCHANTS.length)],
-      category: CATEGORIES[Math.floor(random() * CATEGORIES.length)],
-    };
-  } else {
-    return {
-      transactionId: generateUUID(),
-      userId: generateUUID(),
-      amount: parseFloat((random() * 500 + 100).toFixed(2)),
-      currency: CURRENCIES[Math.floor(random() * CURRENCIES.length)],
-      timestamp: generateTimestamp(),
-      merchant:
-        SUSPICIOUS_MERCHANTS[
-          Math.floor(random() * SUSPICIOUS_MERCHANTS.length)
-        ],
-      category: "unknown",
+      merchant: "Amazon",
+      category: "shopping",
     };
   }
+
+  const merchantKeyword =
+    SUSPICIOUS_KEYWORDS[Math.floor(random() * SUSPICIOUS_KEYWORDS.length)];
+  const baseAmount = random() * 500 + 100;
+
+  return {
+    transactionId: generateUUID(),
+    userId: generateUUID(),
+    amount: parseFloat(baseAmount.toFixed(2)),
+    currency: "USD",
+    timestamp: generateTimestamp(),
+    merchant: `${merchantKeyword.charAt(0).toUpperCase() + merchantKeyword.slice(1)} Store`,
+    category: "shopping",
+  };
 }
 
 function shuffleArray<T>(array: T[], random: () => number): void {
