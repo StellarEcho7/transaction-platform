@@ -32,7 +32,7 @@ src/components/ComponentName/
 4. **MUI first** — wrap or re-export from `@mui/material`; avoid raw CSS unless necessary (Tailwind for spacing/utilities)
 5. **File naming** — use PascalCase for component folders and files
 6. **displayName required** — every forwardRef component must set `Component.displayName = 'ComponentName'` so React DevTools shows the correct name
-7. **Storybook stories required** — every component must have a `.stories.tsx` file with at least one story documenting default behavior
+7. **Storybook stories** — create `.stories.tsx` for components that have meaningful visual states worth documenting (buttons, inputs, cards, modals, etc.). Skip stories for pure layout containers, wrappers that only pass through children, or components that are self-evident (e.g., simple Box/Grid wrappers with no custom props beyond MUI defaults).
 
 ## Implementation steps
 
@@ -46,7 +46,7 @@ src/components/ComponentName/
 
 ## Storybook stories
 
-Every component needs a `.stories.tsx` file next to it. Use `@storybook/nextjs-vite`, not `@storybook/react`.
+Create stories only when the component has visual variations worth demonstrating. Use `@storybook/nextjs-vite`, not `@storybook/react`.
 
 ```tsx
 // src/components/Button/Button.stories.tsx
