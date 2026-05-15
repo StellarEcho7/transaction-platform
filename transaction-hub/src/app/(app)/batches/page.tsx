@@ -51,26 +51,46 @@ export default function BatchesPage() {
       pagination.limit,
       statusFilter || undefined,
     );
+
     if ("error" in result) {
       setError(result.message || result.error);
-      setLoading(false);
       return null;
     }
+
     return result as BatchesData;
   }, [pagination.page, pagination.limit, statusFilter]);
 
-  const loadBatches = useCallback(async () => {
-    const data = await fetchBatches();
-    if (data) {
-      setBatches(data.data);
-      setPagination(data.pagination);
-      setLoading(false);
-    }
-  }, [fetchBatches]);
-
   useEffect(() => {
+    const loadBatches = async () => {
+      setLoading(true);
+
+      const data = await fetchBatches();
+
+      if (!data) {
+        setLoading(false);
+        return;
+      }
+
+      setBatches(data.data);
+
+      setPagination((prev) => {
+        if (
+          prev.page === data.pagination.page &&
+          prev.limit === data.pagination.limit &&
+          prev.total === data.pagination.total &&
+          prev.totalPages === data.pagination.totalPages
+        ) {
+          return prev;
+        }
+
+        return data.pagination;
+      });
+
+      setLoading(false);
+    };
+
     loadBatches();
-  }, [loadBatches]);
+  }, [fetchBatches]);
 
   useEffect(() => {
     const hasProcessing = batches.some((b) => b.status === "PROCESSING");

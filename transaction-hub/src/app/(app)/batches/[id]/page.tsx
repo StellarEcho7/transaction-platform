@@ -80,20 +80,23 @@ export default function BatchDetailsPage({
     };
   }, [batchId, pagination.page, pagination.limit]);
 
-  const loadData = useCallback(async () => {
-    const data = await fetchData();
-    if (data) {
-      setBatch(data.batch);
-      setTransactions(data.transactions);
-      setPagination(data.pagination);
-      setLoading(false);
-    }
-  }, [fetchData]);
-
   useEffect(() => {
-    if (!batchId) return;
-    loadData();
-  }, [batchId, loadData]);
+    if (!batchId) {
+      return;
+    }
+    const run = async () => {
+      const data = await fetchData();
+
+      if (data) {
+        setBatch(data.batch);
+        setTransactions(data.transactions);
+        setPagination(data.pagination);
+        setLoading(false);
+      }
+    };
+
+    run();
+  }, [fetchData, batchId]);
 
   useEffect(() => {
     if (!batchId || !batch) return;
