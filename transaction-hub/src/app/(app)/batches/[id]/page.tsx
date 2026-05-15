@@ -139,19 +139,35 @@ export default function BatchDetailsPage({
     router.push("/batches");
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBgColor = (status: string) => {
     switch (status) {
       case "PROCESSING":
-        return "info";
+        return "#e3f2fd";
       case "COMPLETED":
-        return "success";
+        return "#e8f5e9";
       case "FAILED":
       case "FAILED_FINAL":
-        return "error";
+        return "#ffebee";
       case "PENDING":
-        return "warning";
+        return "#fff3e0";
       default:
-        return "default";
+        return "#f5f5f5";
+    }
+  };
+
+  const getStatusTextColor = (status: string) => {
+    switch (status) {
+      case "PROCESSING":
+        return "#1565c0";
+      case "COMPLETED":
+        return "#2e7d32";
+      case "FAILED":
+      case "FAILED_FINAL":
+        return "#c62828";
+      case "PENDING":
+        return "#e65100";
+      default:
+        return "#616161";
     }
   };
 
@@ -230,8 +246,8 @@ export default function BatchDetailsPage({
                   px: 1,
                   py: 0.5,
                   borderRadius: 1,
-                  bgcolor: `${getStatusColor(batch.status)}.light`,
-                  color: `${getStatusColor(batch.status)}.dark`,
+                  bgcolor: getStatusBgColor(batch.status),
+                  color: getStatusTextColor(batch.status),
                   mb: 1,
                 }}
               >
@@ -332,8 +348,8 @@ export default function BatchDetailsPage({
                           py: 0.5,
                           borderRadius: 1,
                           fontSize: "0.75rem",
-                          bgcolor: `${getStatusColor(tx.status)}.light`,
-                          color: `${getStatusColor(tx.status)}.dark`,
+                          bgcolor: getStatusBgColor(tx.status),
+                          color: getStatusTextColor(tx.status),
                         }}
                       >
                         {tx.status}
