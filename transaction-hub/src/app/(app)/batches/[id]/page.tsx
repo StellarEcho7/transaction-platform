@@ -193,8 +193,8 @@ export default function BatchDetailsPage({
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Button onClick={handleBack} sx={{ mb: 3 }}>
+    <Box sx={{ p: 3, pt: 1 }}>
+      <Button onClick={handleBack} sx={{ mb: 2 }}>
         Back
       </Button>
 
