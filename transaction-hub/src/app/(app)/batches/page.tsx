@@ -24,7 +24,7 @@ import {
 } from "@/src/app/actions/get-batches";
 import { useTheme } from "@/src/components/theme";
 
-type StatusFilter = "" | "PROCESSING" | "COMPLETED" | "FAILED";
+type StatusFilter = "ALL" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 interface BatchesData {
   data: Batch[];
@@ -41,7 +41,7 @@ export default function BatchesPage() {
     total: 0,
     totalPages: 0,
   });
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,7 +49,7 @@ export default function BatchesPage() {
     const result = await getBatches(
       pagination.page,
       pagination.limit,
-      statusFilter || undefined,
+      statusFilter === "ALL" ? undefined : statusFilter,
     );
 
     if ("error" in result) {
@@ -225,7 +225,7 @@ export default function BatchesPage() {
             size="small"
             sx={{ minWidth: 150 }}
           >
-            <MenuItem value="">All</MenuItem>
+            <MenuItem value="ALL">All</MenuItem>
             <MenuItem value="PROCESSING">Processing</MenuItem>
             <MenuItem value="COMPLETED">Completed</MenuItem>
             <MenuItem value="FAILED">Failed</MenuItem>
