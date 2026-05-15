@@ -1,2 +1,2 @@
 export { ThemeProvider } from "./ThemeProvider";
-export { default } from "./useTheme";
+export { useTheme } from "./useTheme";

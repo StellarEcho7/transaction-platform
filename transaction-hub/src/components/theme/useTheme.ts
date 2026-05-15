@@ -1,1 +1,1 @@
-export { default } from "@mui/private-theming/useTheme";
+export { useTheme } from "@mui/material/styles";

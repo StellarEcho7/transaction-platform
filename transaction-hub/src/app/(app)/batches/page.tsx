@@ -22,6 +22,7 @@ import {
   Batch,
   BatchesPagination,
 } from "@/src/app/actions/get-batches";
+import { useTheme } from "@/src/components/theme";
 
 type StatusFilter = "" | "PROCESSING" | "COMPLETED" | "FAILED";
 
@@ -31,6 +32,7 @@ interface BatchesData {
 }
 
 export default function BatchesPage() {
+  const theme = useTheme();
   const router = useRouter();
   const [batches, setBatches] = useState<Batch[]>([]);
   const [pagination, setPagination] = useState<BatchesPagination>({
@@ -122,26 +124,26 @@ export default function BatchesPage() {
   const getStatusBgColor = (status: string) => {
     switch (status) {
       case "PROCESSING":
-        return "#e3f2fd";
+        return theme.palette.info.light;
       case "COMPLETED":
-        return "#e8f5e9";
+        return theme.palette.success.light;
       case "FAILED":
-        return "#ffebee";
+        return theme.palette.error.light;
       default:
-        return "#f5f5f5";
+        return theme.palette.grey[100];
     }
   };
 
   const getStatusTextColor = (status: string) => {
     switch (status) {
       case "PROCESSING":
-        return "#1565c0";
+        return theme.palette.info.dark;
       case "COMPLETED":
-        return "#2e7d32";
+        return theme.palette.success.dark;
       case "FAILED":
-        return "#c62828";
+        return theme.palette.error.dark;
       default:
-        return "#616161";
+        return theme.palette.grey[600];
     }
   };
 

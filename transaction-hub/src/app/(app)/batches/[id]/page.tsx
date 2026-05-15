@@ -23,6 +23,7 @@ import {
   Transaction,
   TransactionPagination,
 } from "@/src/app/actions/get-batch";
+import { useTheme } from "@/src/components/theme";
 
 interface BatchData {
   batch: BatchDetail | null;
@@ -35,6 +36,7 @@ export default function BatchDetailsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const theme = useTheme();
   const router = useRouter();
   const [batchId, setBatchId] = useState<string>("");
   const [batch, setBatch] = useState<BatchDetail | null>(null);
@@ -142,32 +144,32 @@ export default function BatchDetailsPage({
   const getStatusBgColor = (status: string) => {
     switch (status) {
       case "PROCESSING":
-        return "#e3f2fd";
+        return theme.palette.info.light;
       case "COMPLETED":
-        return "#e8f5e9";
+        return theme.palette.success.light;
       case "FAILED":
       case "FAILED_FINAL":
-        return "#ffebee";
+        return theme.palette.error.light;
       case "PENDING":
-        return "#fff3e0";
+        return theme.palette.warning.light;
       default:
-        return "#f5f5f5";
+        return theme.palette.grey[100];
     }
   };
 
   const getStatusTextColor = (status: string) => {
     switch (status) {
       case "PROCESSING":
-        return "#1565c0";
+        return theme.palette.info.dark;
       case "COMPLETED":
-        return "#2e7d32";
+        return theme.palette.success.dark;
       case "FAILED":
       case "FAILED_FINAL":
-        return "#c62828";
+        return theme.palette.error.dark;
       case "PENDING":
-        return "#e65100";
+        return theme.palette.warning.dark;
       default:
-        return "#616161";
+        return theme.palette.grey[600];
     }
   };
 
