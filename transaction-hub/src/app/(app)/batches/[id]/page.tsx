@@ -192,19 +192,6 @@ export default function BatchDetailsPage({
     }).format(amount);
   };
 
-  if (loading && !batch) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Button onClick={handleBack} sx={{ mb: 3 }}>
-          Back
-        </Button>
-        <Paper sx={{ p: 3, textAlign: "center" }}>
-          <Typography color="text.secondary">Loading...</Typography>
-        </Paper>
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ p: 3 }}>
       <Button onClick={handleBack} sx={{ mb: 3 }}>
@@ -296,7 +283,7 @@ export default function BatchDetailsPage({
         Transactions
       </Typography>
 
-      {transactions.length === 0 && !loading ? (
+      {transactions.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: "center" }}>
           <Typography variant="h6" color="text.secondary">
             No transactions found
@@ -304,6 +291,7 @@ export default function BatchDetailsPage({
         </Paper>
       ) : (
         <>
+          {loading && <LinearProgress sx={{ mb: 1, height: 3 }} />}
           <TableContainer
             component={Paper}
             elevation={0}
