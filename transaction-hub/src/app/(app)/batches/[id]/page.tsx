@@ -301,29 +301,33 @@ export default function BatchDetailsPage({
               overflowX: "auto",
             }}
           >
-            <Table>
+            <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ minWidth: 120 }}>Transaction ID</TableCell>
-                  <TableCell align="right" sx={{ width: 100 }}>
+                  <TableCell sx={{ minWidth: 110, py: 1 }}>
+                    Transaction ID
+                  </TableCell>
+                  <TableCell align="right" sx={{ width: 90, py: 1 }}>
                     Amount
                   </TableCell>
-                  <TableCell sx={{ width: 60 }}>Currency</TableCell>
-                  <TableCell sx={{ minWidth: 150 }}>Timestamp</TableCell>
-                  <TableCell sx={{ minWidth: 120 }}>Merchant</TableCell>
-                  <TableCell sx={{ width: 100 }}>Category</TableCell>
-                  <TableCell sx={{ width: 90 }}>Status</TableCell>
-                  <TableCell sx={{ width: 90 }}>Step</TableCell>
-                  <TableCell sx={{ width: 60 }}>Region</TableCell>
-                  <TableCell align="right" sx={{ width: 80 }}>
-                    Risk Score
+                  <TableCell sx={{ width: 50, py: 1 }}>Currency</TableCell>
+                  <TableCell sx={{ minWidth: 130, py: 1 }}>Timestamp</TableCell>
+                  <TableCell sx={{ minWidth: 100, py: 1 }}>Merchant</TableCell>
+                  <TableCell sx={{ width: 80, py: 1 }}>Category</TableCell>
+                  <TableCell sx={{ width: 80, py: 1 }}>Status</TableCell>
+                  <TableCell sx={{ width: 80, py: 1 }}>Step</TableCell>
+                  <TableCell sx={{ width: 50, py: 1 }}>Region</TableCell>
+                  <TableCell align="right" sx={{ width: 70, py: 1 }}>
+                    Risk
                   </TableCell>
-                  <TableCell sx={{ minWidth: 120 }}>Fraud Flags</TableCell>
+                  <TableCell sx={{ minWidth: 100, py: 1 }}>
+                    Fraud Flags
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {transactions.map((tx) => (
-                  <TableRow key={tx.id} hover>
+                  <TableRow key={tx.id} hover sx={{ py: 0.25 }}>
                     <TableCell>{tx.transactionId}</TableCell>
                     <TableCell align="right">
                       {formatAmount(tx.amount, tx.currency)}

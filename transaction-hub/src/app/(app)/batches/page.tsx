@@ -262,24 +262,22 @@ export default function BatchesPage() {
             elevation={0}
             sx={{ border: "1px solid", borderColor: "divider", minWidth: 900 }}
           >
-            <Table>
+            <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ minWidth: 150 }}>Name</TableCell>
-                  <TableCell sx={{ width: 110 }}>Status</TableCell>
-                  <TableCell align="right" sx={{ width: 80 }}>
+                  <TableCell sx={{ minWidth: 120, py: 1 }}>Name</TableCell>
+                  <TableCell sx={{ width: 90, py: 1 }}>Status</TableCell>
+                  <TableCell align="right" sx={{ width: 70, py: 1 }}>
                     Total
                   </TableCell>
-                  <TableCell align="right" sx={{ width: 100 }}>
+                  <TableCell align="right" sx={{ width: 80, py: 1 }}>
                     Processed
                   </TableCell>
-                  <TableCell align="right" sx={{ width: 80 }}>
+                  <TableCell align="right" sx={{ width: 70, py: 1 }}>
                     Failed
                   </TableCell>
-                  <TableCell sx={{ minWidth: 220, width: 250 }}>
-                    Progress
-                  </TableCell>
-                  <TableCell sx={{ width: 160 }}>Created</TableCell>
+                  <TableCell sx={{ minWidth: 180, py: 1 }}>Progress</TableCell>
+                  <TableCell sx={{ width: 140, py: 1 }}>Created</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -288,7 +286,7 @@ export default function BatchesPage() {
                     key={batch.id}
                     hover
                     onClick={() => handleRowClick(batch.id)}
-                    sx={{ cursor: "pointer" }}
+                    sx={{ cursor: "pointer", py: 0.5 }}
                   >
                     <TableCell>{batch.name}</TableCell>
                     <TableCell>
