@@ -243,7 +243,7 @@ export default function BatchesPage() {
         </Box>
       </Paper>
 
-      {batches.length === 0 ? (
+      {batches.length === 0 && !loading ? (
         <Paper sx={{ p: 4, textAlign: "center" }}>
           <Typography variant="h6" color="text.secondary">
             No batches found

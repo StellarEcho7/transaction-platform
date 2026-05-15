@@ -283,7 +283,7 @@ export default function BatchDetailsPage({
         Transactions
       </Typography>
 
-      {transactions.length === 0 ? (
+      {transactions.length === 0 && !loading ? (
         <Paper sx={{ p: 4, textAlign: "center" }}>
           <Typography variant="h6" color="text.secondary">
             No transactions found
