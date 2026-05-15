@@ -304,14 +304,14 @@ export default function BatchDetailsPage({
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ minWidth: 110, py: 1 }}>
+                  <TableCell sx={{ minWidth: 320, py: 1 }}>
                     Transaction ID
                   </TableCell>
                   <TableCell align="right" sx={{ width: 90, py: 1 }}>
                     Amount
                   </TableCell>
-                  <TableCell sx={{ width: 50, py: 1 }}>Currency</TableCell>
-                  <TableCell sx={{ minWidth: 130, py: 1 }}>Timestamp</TableCell>
+                  <TableCell sx={{ width: 10, py: 1 }}>Currency</TableCell>
+                  <TableCell sx={{ minWidth: 170, py: 1 }}>Timestamp</TableCell>
                   <TableCell sx={{ minWidth: 100, py: 1 }}>Merchant</TableCell>
                   <TableCell sx={{ width: 80, py: 1 }}>Category</TableCell>
                   <TableCell sx={{ width: 80, py: 1 }}>Status</TableCell>
