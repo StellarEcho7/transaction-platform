@@ -191,19 +191,6 @@ export default function BatchesPage() {
     return new Date(dateString).toLocaleString();
   };
 
-  if (loading && batches.length === 0) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
-          Batches
-        </Typography>
-        <Paper sx={{ p: 3, textAlign: "center" }}>
-          <Typography color="text.secondary">Loading...</Typography>
-        </Paper>
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
@@ -267,6 +254,9 @@ export default function BatchesPage() {
         </Paper>
       ) : (
         <>
+          <Box sx={{ mb: 1 }}>
+            {loading && <LinearProgress sx={{ height: 3 }} />}
+          </Box>
           <TableContainer
             component={Paper}
             elevation={0}
@@ -339,7 +329,6 @@ export default function BatchesPage() {
               </TableBody>
             </Table>
           </TableContainer>
-
           <TablePagination
             component="div"
             count={pagination.total}
