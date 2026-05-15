@@ -30,6 +30,7 @@ export async function getBatches(
   page: number = 1,
   limit: number = 10,
   status?: string,
+  name?: string,
 ): Promise<GetBatchesResult | GetBatchesError> {
   try {
     const queryParams = new URLSearchParams();
@@ -37,6 +38,9 @@ export async function getBatches(
     queryParams.append("limit", String(limit));
     if (status) {
       queryParams.append("status", status);
+    }
+    if (name) {
+      queryParams.append("name", name);
     }
 
     const response = await fetch(`/api/batches?${queryParams.toString()}`, {

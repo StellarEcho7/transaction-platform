@@ -1,4 +1,4 @@
-import { IsOptional, IsInt, Min, Max, IsIn } from 'class-validator';
+import { IsOptional, IsInt, Min, Max, IsIn, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { BatchStatus } from '../constants/batch-status';
 
@@ -19,4 +19,8 @@ export class BatchListQueryDto {
   @IsOptional()
   @IsIn([BatchStatus.PROCESSING, BatchStatus.COMPLETED, BatchStatus.FAILED])
   status?: BatchStatus;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
 }

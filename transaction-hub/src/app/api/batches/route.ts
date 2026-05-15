@@ -7,12 +7,16 @@ export async function GET(req: NextRequest) {
     const page = searchParams.get("page") || "1";
     const limit = searchParams.get("limit") || "10";
     const status = searchParams.get("status") || "";
+    const name = searchParams.get("name") || "";
 
     const queryParams = new URLSearchParams();
     queryParams.append("page", page);
     queryParams.append("limit", limit);
     if (status) {
       queryParams.append("status", status);
+    }
+    if (name) {
+      queryParams.append("name", name);
     }
 
     const response = await fetch(

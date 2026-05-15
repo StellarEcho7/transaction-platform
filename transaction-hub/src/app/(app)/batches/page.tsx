@@ -7,6 +7,7 @@ import Paper from "@/src/components/Paper";
 import Typography from "@/src/components/Typography";
 import Select from "@/src/components/Select";
 import MenuItem from "@/src/components/MenuItem";
+import TextField from "@/src/components/TextField";
 import {
   Table,
   TableBody,
@@ -42,14 +43,24 @@ export default function BatchesPage() {
     totalPages: 0,
   });
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [nameFilter, setNameFilter] = useState("");
+  const [debouncedName, setDebouncedName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedName(nameFilter);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [nameFilter]);
 
   const fetchBatches = useCallback(async (): Promise<BatchesData | null> => {
     const result = await getBatches(
       pagination.page,
       pagination.limit,
       statusFilter === "ALL" ? undefined : statusFilter,
+      debouncedName || undefined,
     );
 
     if ("error" in result) {
@@ -58,12 +69,11 @@ export default function BatchesPage() {
     }
 
     return result as BatchesData;
-  }, [pagination.page, pagination.limit, statusFilter]);
+  }, [pagination.page, pagination.limit, statusFilter, debouncedName]);
 
   useEffect(() => {
     const loadBatches = async () => {
       setLoading(true);
-
       const data = await fetchBatches();
 
       if (!data) {
@@ -90,7 +100,7 @@ export default function BatchesPage() {
     };
 
     loadBatches();
-  }, [fetchBatches]);
+  }, [pagination.page, pagination.limit, statusFilter, fetchBatches]);
 
   useEffect(() => {
     const hasProcessing = batches.some((b) => b.status === "PROCESSING");
@@ -135,6 +145,11 @@ export default function BatchesPage() {
     setStatusFilter(value);
     setPagination((prev) => ({ ...prev, page: 1 }));
     setLoading(true);
+  };
+
+  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNameFilter(event.target.value);
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   const handleRowClick = (batchId: string) => {
@@ -218,6 +233,14 @@ export default function BatchesPage() {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Typography variant="body2">Name:</Typography>
+          <TextField
+            value={nameFilter}
+            onChange={handleNameChange}
+            size="small"
+            placeholder="Search by name"
+            sx={{ minWidth: 200 }}
+          />
           <Typography variant="body2">Status:</Typography>
           <Select
             value={statusFilter}

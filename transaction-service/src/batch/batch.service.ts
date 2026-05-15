@@ -154,8 +154,14 @@ export class BatchService {
   async findAll(
     query: BatchListQueryDto,
   ): Promise<{ data: BatchResponseDto[]; pagination: PaginationResponseDto }> {
-    const { page = 1, limit = 10, status } = query;
-    const where = status ? { status } : {};
+    const { page = 1, limit = 10, status, name } = query;
+    const where: Prisma.BatchWhereInput = {};
+    if (status) {
+      where.status = status;
+    }
+    if (name) {
+      where.name = { contains: name, mode: 'insensitive' };
+    }
 
     const [batches, total] = await Promise.all([
       this.prisma.batch.findMany({
