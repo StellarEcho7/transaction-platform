@@ -206,16 +206,6 @@ export default function BatchDetailsPage({
     return regionMap[region] || region;
   };
 
-  const getStepLabel = (step: string | null) => {
-    if (!step) return "-";
-    const stepMap: Record<string, string> = {
-      VALIDATE: "Validate",
-      ENRICH: "Enrich",
-      ANALYZE: "Analyze",
-    };
-    return stepMap[step] || step;
-  };
-
   const formatFraudFlags = (flags: string | string[] | null) => {
     if (!flags || (Array.isArray(flags) && flags.length === 0)) return "-";
     const flagMap: Record<string, string> = {
@@ -382,7 +372,6 @@ export default function BatchDetailsPage({
                   <TableCell sx={{ minWidth: 100, py: 1 }}>Merchant</TableCell>
                   <TableCell sx={{ width: 80, py: 1 }}>Category</TableCell>
                   <TableCell sx={{ width: 80, py: 1 }}>Status</TableCell>
-                  <TableCell sx={{ width: 90, py: 1 }}>Step</TableCell>
                   <TableCell sx={{ width: 80, py: 1 }}>Region</TableCell>
                   <TableCell align="right" sx={{ width: 70, py: 1 }}>
                     Risk
@@ -418,24 +407,6 @@ export default function BatchDetailsPage({
                       >
                         {getStatusLabel(tx.status)}
                       </Typography>
-                    </TableCell>
-                    <TableCell>
-                      {tx.currentStep && (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            display: "inline-block",
-                            px: 1,
-                            py: 0.5,
-                            borderRadius: 1,
-                            fontSize: "0.75rem",
-                            bgcolor: "warning.light",
-                            color: "warning.dark",
-                          }}
-                        >
-                          {getStepLabel(tx.currentStep)}
-                        </Typography>
-                      )}
                     </TableCell>
                     <TableCell>{getRegionLabel(tx.region)}</TableCell>
                     <TableCell align="right">
