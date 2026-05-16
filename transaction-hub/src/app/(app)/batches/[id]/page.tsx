@@ -243,6 +243,22 @@ export default function BatchDetailsPage({
     return "error";
   };
 
+  const getStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      PENDING: "Pending",
+      PROCESSING: "Processing",
+      COMPLETED: "Completed",
+      FAILED: "Failed",
+      FAILED_FINAL: "Invalid",
+    };
+    return statusMap[status] || status;
+  };
+
+  const getCategoryLabel = (category: string | null) => {
+    if (!category) return "-";
+    return category.charAt(0).toUpperCase() + category.slice(1);
+  };
+
   return (
     <Box sx={{ p: 3, pt: 1 }}>
       <Button onClick={handleBack} sx={{ mb: 2 }}>
@@ -294,7 +310,7 @@ export default function BatchDetailsPage({
                   mb: 1,
                 }}
               >
-                {batch.status}
+                {getStatusLabel(batch.status)}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Source: {batch.source}
@@ -386,7 +402,7 @@ export default function BatchDetailsPage({
                     <TableCell>{tx.currency}</TableCell>
                     <TableCell>{formatDate(tx.timestamp)}</TableCell>
                     <TableCell>{tx.merchant}</TableCell>
-                    <TableCell>{tx.category}</TableCell>
+                    <TableCell>{getCategoryLabel(tx.category)}</TableCell>
                     <TableCell>
                       <Typography
                         variant="body2"
@@ -400,7 +416,7 @@ export default function BatchDetailsPage({
                           color: getStatusTextColor(tx.status),
                         }}
                       >
-                        {tx.status}
+                        {getStatusLabel(tx.status)}
                       </Typography>
                     </TableCell>
                     <TableCell>
