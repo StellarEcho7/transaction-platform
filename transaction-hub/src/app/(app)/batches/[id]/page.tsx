@@ -192,6 +192,57 @@ export default function BatchDetailsPage({
     }).format(amount);
   };
 
+  const getRegionLabel = (region: string | null) => {
+    if (!region) return "-";
+    const regionMap: Record<string, string> = {
+      EU: "Europe",
+      ASIA: "Asia",
+      UNKNOWN: "Unknown",
+      NA: "North America",
+      SA: "South America",
+      AF: "Africa",
+      OC: "Oceania",
+    };
+    return regionMap[region] || region;
+  };
+
+  const getStepLabel = (step: string | null) => {
+    if (!step) return "-";
+    const stepMap: Record<string, string> = {
+      VALIDATE: "Validate",
+      ENRICH: "Enrich",
+      ANALYZE: "Analyze",
+    };
+    return stepMap[step] || step;
+  };
+
+  const formatFraudFlags = (flags: string | string[] | null) => {
+    if (!flags || (Array.isArray(flags) && flags.length === 0)) return "-";
+    const flagMap: Record<string, string> = {
+      SUSPICIOUS_MERCHANT: "Suspicious Merchant",
+      HIGH_AMOUNT: "High Amount",
+      VELOCITY_CHECK: "Velocity Check",
+      UNKNOWN_REGION: "Unknown Region",
+      UNKNOWN_CATEGORY: "Unknown Category",
+    };
+    if (Array.isArray(flags)) {
+      return flags.map((f) => flagMap[f] || f).join(", ");
+    }
+    return flags
+      .replace(/([A-Z])/g, " $1")
+      .trim()
+      .split(" ")
+      .map((f) => flagMap[f] || f)
+      .join(", ");
+  };
+
+  const getRiskBadgeColor = (risk: number | null) => {
+    if (risk === null) return "grey";
+    if (risk === 0) return "success";
+    if (risk < 0.5) return "warning";
+    return "error";
+  };
+
   return (
     <Box sx={{ p: 3, pt: 1 }}>
       <Button onClick={handleBack} sx={{ mb: 2 }}>
@@ -315,12 +366,12 @@ export default function BatchDetailsPage({
                   <TableCell sx={{ minWidth: 100, py: 1 }}>Merchant</TableCell>
                   <TableCell sx={{ width: 80, py: 1 }}>Category</TableCell>
                   <TableCell sx={{ width: 80, py: 1 }}>Status</TableCell>
-                  <TableCell sx={{ width: 80, py: 1 }}>Step</TableCell>
-                  <TableCell sx={{ width: 50, py: 1 }}>Region</TableCell>
+                  <TableCell sx={{ width: 90, py: 1 }}>Step</TableCell>
+                  <TableCell sx={{ width: 80, py: 1 }}>Region</TableCell>
                   <TableCell align="right" sx={{ width: 70, py: 1 }}>
                     Risk
                   </TableCell>
-                  <TableCell sx={{ minWidth: 100, py: 1 }}>
+                  <TableCell sx={{ minWidth: 140, py: 1 }}>
                     Fraud Flags
                   </TableCell>
                 </TableRow>
@@ -366,15 +417,39 @@ export default function BatchDetailsPage({
                             color: "warning.dark",
                           }}
                         >
-                          {tx.currentStep}
+                          {getStepLabel(tx.currentStep)}
                         </Typography>
                       )}
                     </TableCell>
-                    <TableCell>{tx.region || "-"}</TableCell>
+                    <TableCell>{getRegionLabel(tx.region)}</TableCell>
                     <TableCell align="right">
-                      {tx.riskScore !== null ? tx.riskScore.toFixed(2) : "-"}
+                      {tx.riskScore !== null ? (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: `${getRiskBadgeColor(tx.riskScore)}.main`,
+                            fontWeight: tx.riskScore > 0 ? 500 : 400,
+                          }}
+                        >
+                          {tx.riskScore.toFixed(2)}
+                        </Typography>
+                      ) : (
+                        "-"
+                      )}
                     </TableCell>
-                    <TableCell>{tx.fraudFlags || "-"}</TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: tx.fraudFlags
+                            ? "error.main"
+                            : "text.secondary",
+                          fontSize: tx.fraudFlags ? "0.75rem" : "inherit",
+                        }}
+                      >
+                        {formatFraudFlags(tx.fraudFlags)}
+                      </Typography>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

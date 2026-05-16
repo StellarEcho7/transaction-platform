@@ -57,7 +57,7 @@ export interface Transaction {
   region: string | null;
   operationType: string | null;
   riskScore: number | null;
-  fraudFlags: string | null;
+  fraudFlags: string | string[] | null;
   batchId: string;
   createdAt: string;
   updatedAt: string;
