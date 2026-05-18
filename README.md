@@ -19,7 +19,7 @@ The system ensures that:
 ## The user can upload the batch file with transactions inside:
 ![](images/batch_uploaded.png)
 
-## Once the file is accepted the user can leave the system or oserve the processing progress of the uploaded transactions:
+## Once the file is accepted the user can leave the system or observe the processing progress of the uploaded transactions:
 ![](images/view_batches.png)
 
 ## It is also possible to see the details of the batch:
