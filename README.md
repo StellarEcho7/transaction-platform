@@ -19,6 +19,12 @@ The system ensures that:
 ## The user can upload the batch file with transactions inside:
 ![](images/batch_uploaded.png)
 
+## Once the file is accepted the user can leave the system or oserve the processing progress of the uploaded transactions:
+![](images/view_batches.png)
+
+## It is also possible to see the details of the batch:
+![](images/view_batch_details.png)
+
 ## What makes it reliable
 Even if:
 - workers crash mid-processing  
@@ -28,6 +34,8 @@ Even if:
 
 → transactions are not lost and will be recovered and continued automatically
 
+## For testing purposes the transaction generator is added. The user can generate and download json file with transactions:
+![](images/generate_transactions.png)
 
 # Technology stack
 
