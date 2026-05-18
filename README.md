@@ -16,6 +16,9 @@ The system ensures that:
 - each step is explicitly controlled via a state machine (status + currentStep)
 - consistency between database and queue is guaranteed via the outbox pattern
 
+## The user can upload the batch file with transactions inside:
+![](images/batch_uploaded.png)
+
 ## What makes it reliable
 Even if:
 - workers crash mid-processing  
