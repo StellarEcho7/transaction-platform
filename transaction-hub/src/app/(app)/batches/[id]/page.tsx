@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Alert from "@/src/components/Alert";
 import Box from "@/src/components/Box";
 import Paper from "@/src/components/Paper";
 import Typography from "@/src/components/Typography";
@@ -256,16 +257,9 @@ export default function BatchDetailsPage({
       </Button>
 
       {error && (
-        <Paper
-          sx={{
-            p: 2,
-            mb: 2,
-            bgcolor: "error.light",
-            color: "error.contrastText",
-          }}
-        >
-          <Typography>{error}</Typography>
-        </Paper>
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
       )}
 
       {batch && (
