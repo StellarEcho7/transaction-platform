@@ -1,3 +1,7 @@
+"use server";
+
+import { config } from "@/src/config";
+
 export interface BatchDetail {
   id: string;
   name: string;
@@ -18,7 +22,7 @@ export async function getBatch(
   id: string,
 ): Promise<BatchDetail | BatchDetailError> {
   try {
-    const response = await fetch(`/api/batches/${id}`, {
+    const response = await fetch(`${config.serviceUrl}/batches/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -91,7 +95,7 @@ export async function getBatchTransactions(
     queryParams.append("limit", String(limit));
 
     const response = await fetch(
-      `/api/batches/${batchId}/transactions?${queryParams.toString()}`,
+      `${config.serviceUrl}/batches/${batchId}/transactions?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {

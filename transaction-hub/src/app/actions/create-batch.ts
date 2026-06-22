@@ -1,3 +1,7 @@
+"use server";
+
+import { config } from "@/src/config";
+
 export interface TransactionInput {
   transactionId: string;
   userId: string;
@@ -26,14 +30,15 @@ export async function createBatch(
   batchName?: string,
 ): Promise<CreateBatchResult | CreateBatchError> {
   try {
-    const response = await fetch("/api/batches", {
+    const response = await fetch(`${config.serviceUrl}/batches`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         transactions,
-        batchName,
+        batchName: batchName || undefined,
+        source: "MANUAL",
       }),
     });
 

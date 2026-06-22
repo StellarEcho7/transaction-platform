@@ -1,3 +1,7 @@
+// "use server";
+
+import { config } from "@/src/config";
+
 export interface Batch {
   id: string;
   name: string;
@@ -43,12 +47,15 @@ export async function getBatches(
       queryParams.append("name", name);
     }
 
-    const response = await fetch(`/api/batches?${queryParams.toString()}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${config.serviceUrl}/batches?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
     const data = await response.json();
 
